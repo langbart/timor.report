@@ -44,7 +44,7 @@ library(tidytext)
 library(timetk)
 library(wesanderson)
 
-
+#load data
 catch <- timor.report::catch
 trips <- timor.report::trips
 metadata <- timor.report::metadata
