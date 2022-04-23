@@ -17,8 +17,10 @@ Imports:
     googleCloudStorageR,
     jsonlite,
     readr,
+    rmarkdown,
     roxygen2,
     tidyr,
+    tidyselect,
     usethis
 RoxygenNote: 7.1.2
 Depends: 

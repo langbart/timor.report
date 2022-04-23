@@ -231,13 +231,67 @@ get_file <- function(prefix){
   x
 }
 
-# Download file
-trips <- get_file("timor_trips")
-catch <- get_file("timor_catch")
-metadata <- get_file("metadata-tables_preprocessed")
 
-usethis::use_data(trips, overwrite = TRUE)
-usethis::use_data(catch, overwrite = TRUE)
-usethis::use_data(metadata, overwrite = TRUE)
+#' Preprocess and store report data
+#'
+#' The function load catches and trips data, preprocess and combine them to
+#' return a dataframe ready to be analysed and stored in the folder `data`.
+#'
+#' @param ... Any additional arguments
+#'
+#' @return A dataframe `report_data` in `data` folder
+#' @export
+#'
+store_data <- function(...) {
+  # Download file
+  trips <- get_file("timor_trips")
+  catch <- get_file("timor_catch")
 
+  catch_clean <-
+    catch %>%
+    dplyr::group_by(.data$trip_id, .data$catch_taxon) %>%
+    dplyr::filter(.data$individuals > 0 & .data$weight > 0) %>%
+    dplyr::select(-c(.data$length_type, .data$Selenium_mu:.data$Vitamin_A_mu)) %>%
+    dplyr::ungroup()
 
+  report_data <-
+    catch_clean %>%
+    dplyr::left_join(trips, by = "trip_id") %>%
+    dplyr::mutate(n_fishers = .data$fisher_number_man + .data$fisher_number_woman + .data$fisher_number_child) %>%
+    dplyr::select(
+      .data$trip_id, .data$landing_date, .data$landing_survey_trip_duration, .data$reporting_region,
+      .data$landing_station, .data$habitat, .data$gear_type, .data$n_fishers, .data$landing_value,
+      .data$catch_taxon, .data$catch_purpose, .data$length, .data$individuals, .data$weight
+    ) %>%
+    dplyr::filter(.data$landing_date < "2021-12-31") %>%
+    dplyr::mutate(area = dplyr::case_when(
+      .data$reporting_region %in% c("Bobonaro", "Liquiça", "Dili", "Baucau", "Oecusse", "Atauro") |
+        .data$landing_station %in% c("Com", "Tutuala", "Ililai") ~ "North Coast",
+      TRUE ~ "South Coast"
+    )) %>%
+    dplyr::mutate(fish_group = dplyr::case_when(
+      catch_taxon %in% c("COZ") ~ "Molluscs",
+      catch_taxon %in% c("PEZ") ~ "Shrimp",
+      catch_taxon %in% c("MZZ") ~ "Unknown",
+      catch_taxon %in% c("SLV", "CRA") ~ "Crustaceans",
+      catch_taxon %in% c("OCZ", "IAX") ~ "Cephalopods",
+      catch_taxon %in% c("SKH", "SRX") ~ "Shark and rays",
+      catch_taxon %in% c("SNA", "GPX", "PWT", "SUR", "GRX", "MUI", "BGX") ~ "Large demersal",
+      catch_taxon %in% c("CGX", "TUN", "BEN", "LWX", "BAR", "SFA", "CBA", "DOX", "ECN", "DOS") ~ "Large pelagics",
+      catch_taxon %in% c("YDX", "SPI", "EMP", "SUR", "TRI", "MOJ", "WRA", "MOO", "BWH", "LGE", "MOB", "MHL", "GOX", "THO", "IHX", "APO", "IHX", "PUX", "DRZ") ~ "Small demersal",
+      catch_taxon %in% c("RAX", "SDX", "CJX", "CLP", "GZP", "FLY", "KYX", "CLP", "MUL", "DSF", "MIL", "THF") ~ "Small pelagics",
+      TRUE ~ NA_character_
+    )) %>%
+    dplyr::mutate(period = dplyr::case_when(
+      .data$landing_date < "2020-03-28" ~ "pre-pandemic", TRUE ~ "pandemic")) %>%
+    dplyr::select(
+      .data$trip_id:.data$landing_survey_trip_duration, .data$area,
+      .data$reporting_region:.data$landing_value,
+      .data$fish_group, tidyselect::everything()
+    ) %>%
+    dplyr::filter(!is.na(.data$fish_group))
+
+  usethis::use_data(report_data, overwrite = TRUE)
+}
+
+store_data()
