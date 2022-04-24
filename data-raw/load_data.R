@@ -265,20 +265,21 @@ store_data <- function(...) {
     ) %>%
     dplyr::filter(.data$landing_date < "2021-12-31") %>%
     dplyr::mutate(area = dplyr::case_when(
-      .data$reporting_region %in% c("Bobonaro", "Liquiça", "Dili", "Baucau", "Oecusse", "Atauro") |
+      .data$reporting_region %in% c("Bobonaro", "Liquiça", "Dili", "Baucau", "Oecusse") |
         .data$landing_station %in% c("Com", "Tutuala", "Ililai") ~ "North Coast",
+      .data$reporting_region == "Atauro" ~ "Atauro island",
       TRUE ~ "South Coast"
     )) %>%
     dplyr::mutate(fish_group = dplyr::case_when(
       catch_taxon %in% c("COZ") ~ "Molluscs",
-      catch_taxon %in% c("PEZ") ~ "Shrimp",
+      catch_taxon %in% c("PEZ") ~ "Shrimps",
       catch_taxon %in% c("MZZ") ~ "Unknown",
       catch_taxon %in% c("SLV", "CRA") ~ "Crustaceans",
       catch_taxon %in% c("OCZ", "IAX") ~ "Cephalopods",
       catch_taxon %in% c("SKH", "SRX") ~ "Shark and rays",
-      catch_taxon %in% c("SNA", "GPX", "PWT", "SUR", "GRX", "MUI", "BGX") ~ "Large demersal",
+      catch_taxon %in% c("SNA", "GPX", "PWT", "SUR", "GRX", "MUI", "BGX") ~ "Large demersals",
       catch_taxon %in% c("CGX", "TUN", "BEN", "LWX", "BAR", "SFA", "CBA", "DOX", "ECN", "DOS") ~ "Large pelagics",
-      catch_taxon %in% c("YDX", "SPI", "EMP", "SUR", "TRI", "MOJ", "WRA", "MOO", "BWH", "LGE", "MOB", "MHL", "GOX", "THO", "IHX", "APO", "IHX", "PUX", "DRZ") ~ "Small demersal",
+      catch_taxon %in% c("YDX", "SPI", "EMP", "SUR", "TRI", "MOJ", "WRA", "MOO", "BWH", "LGE", "MOB", "MHL", "GOX", "THO", "IHX", "APO", "IHX", "PUX", "DRZ") ~ "Small demersals",
       catch_taxon %in% c("RAX", "SDX", "CJX", "CLP", "GZP", "FLY", "KYX", "CLP", "MUL", "DSF", "MIL", "THF") ~ "Small pelagics",
       TRUE ~ NA_character_
     )) %>%
