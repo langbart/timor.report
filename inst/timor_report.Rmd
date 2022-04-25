@@ -42,6 +42,8 @@ library(timetk)
 library(ggchicklet)
 library(cowplot)
 library(ggpubr)
+library(RColorBrewer)
+
 
 setwd("../..")
 pars <- timor.report::read_config()
@@ -62,9 +64,230 @@ absolute_percent <- function(x) {
 paste_percent <- function(x) {
   paste0(x, "%")
 }
+
+area_colors <- c("#505050", "#d23f67", "#17A3BF")
+
+gear_cols <- rev(brewer.pal(length(levels(report_data$gear_type)),"Set3"))
+names(gear_cols) <- levels(report_data$gear_type)
+gear_colors <- scale_fill_manual(values = gear_cols)
+
+fish_cols <- rev(brewer.pal(length(levels(report_data$fish_group)),"Set3"))
+names(fish_cols) <- levels(report_data$fish_group)
+fish_colors <- scale_fill_manual(values = fish_cols)
+
+plot_bar_grouped <- function(data = NULL,
+                              filter_var = NULL,
+                            facet_var = NULL,
+                            fill_var = NULL,
+                            fill_title = NULL,
+                            fill_scale = NULL,
+                            legend_rows = 3){
+  
+  dummy_plot <- 
+    data %>%
+    ggplot(aes(obs_perc,value, fill = data[,fill_var][[1]])) +
+    geom_chicklet(alpha = 0.75, radius = grid::unit(4, "pt"))+
+    #scale_fill_viridis_d(begin = 0, end = 1)+
+    fill_scale +
+    labs(fill = fill_title)+
+    theme_minimal()+
+    theme(legend.position = "bottom",
+          legend.key.size = unit(0.7, 'cm'))+
+    guides(fill = guide_legend(nrow = legend_rows,
+                               label.theme = element_text(size = 11)))
+  
+  dummy_plot_legend <<-  
+    ggpubr::get_legend(dummy_plot) %>% 
+    ggpubr::as_ggplot()
+  
+  if (facet_var == "area"){
+    dat <- 
+      data %>% 
+      dplyr::filter(area == filter_var)
+    
+    y_label <- ifelse(unique(dat$area %in% "Atauro island"),
+                      "FRQ of occurrence", "")
+    
+  } else {
+    
+    dat <- 
+      data %>% 
+      dplyr::filter(gear_type %in% filter_var) 
+    
+    y_label <- ifelse(unique(dat$gear_type %in% c("gill net", "hand line")),
+                      "FRQ of occurrence", "")
+  }
+  
+  main_plot <- 
+    ggplot(dat, aes(obs_perc,value, fill = dat[,fill_var][[1]])) +
+    theme_minimal(13)+
+    geom_chicklet(alpha = 0.75, radius = grid::unit(4, "pt"))+
+    geom_hline(yintercept = 0, size = 0.2, color = "grey30")+
+    coord_flip()+
+    #scale_fill_viridis_d(begin = 0, end = 1)+
+    fill_scale +
+    scale_y_continuous(labels = absolute_percent, n.breaks = 7)+
+    scale_x_discrete(labels = paste_percent)
+  
+  main_plot +
+    labs(x = y_label,
+         y = "N. individuals                      Weight",
+         title = filter_var)+
+    theme(legend.position = "none",
+          plot.title = element_text(hjust = 0.5))
+}
+
+
 ```
 
-# Effort and landings
+# Fishing gear
+
+(ref:IRIGearGroups) **Gear composition of the three strata using the Index of Relative Importance (IRI).** Gear composition using the Index of Relative Importance (IRI) of the landings of Atauro island, north coast, and south coast from September 2016 to April 2021. The IRI considers the weight and the number of fish caught per gear type, and the frequency of occurrence (FRQ) of a gear type.
+
+```{r IRIGearGroups, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=9, fig.cap='(ref:IRIGearGroups)'}
+# create base dataset for plotting
+plot_dat <- 
+  report_data %>%
+  dplyr::group_by(area, gear_type) %>%
+  dplyr::summarise(
+    weight = sum(weight),
+    individuals = sum(individuals),
+    obs = dplyr::n()
+  ) %>%
+  dplyr::group_by(area) %>%
+  dplyr::mutate(
+    weight_tot = sum(weight),
+    individuals_tot = sum(individuals),
+    obs_tot = sum(obs)
+  ) %>%
+  dplyr::ungroup() %>%
+  dplyr::transmute(
+    area = area,
+    gear_type = as.factor(gear_type),
+    weight_perc = weight / weight_tot * 100,
+    individuals_perc = (individuals / individuals_tot * 100)*-1,
+    obs_perc = as.factor(round(obs / obs_tot * 100, 0))
+  ) %>%
+  tidyr::pivot_longer(-c(area, gear_type, obs_perc)) %>%
+  dplyr::ungroup() 
+
+
+all_plots <- purrr::map(unique(plot_dat$area), ~ 
+                          plot_bar_grouped(data = plot_dat,
+                                           filter_var = .x,
+                                           fill_var = "gear_type",
+                                           fill_title = "Gear type",
+                                           facet_var = "area",
+                                           fill_scale = gear_colors,
+                                           legend_rows = 3))
+
+main_plot <- cowplot::plot_grid(plotlist = all_plots, ncol = 3, align = "hv")
+
+cowplot::plot_grid(main_plot,
+                   dummy_plot_legend,
+                   ncol = 1, nrow=2,
+                   rel_heights = c(3, 0.75))
+
+```
+
+# **Effort and landings**
+
+## **Number of trips per week**
+
+## **Trip effort**
+
+(ref:TripEffort) **Mean trip effort.** The mean effort (fishermen \* hours) of a fishing trip in Atauro island (light blue), north coast (dark blue) and south coast (green) for the period of September 2016 to March 2021, with the strata plotted (a) together in one plot and (b) separately, where the y-axis has free scaling. The error bars represent the standard error. The dashed line shows the linear regression with 95% confidence intervals. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020
+
+```{r TripEffort, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=6.5, fig.cap='(ref:TripEffort)'}
+
+  report_data %>%
+    dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
+                  effort = n_fishers * landing_survey_trip_duration) %>% 
+    dplyr::group_by(area, month_period) %>% 
+    dplyr::summarise(mean = mean(effort, na.rm =TRUE),
+                     sd = sd(effort,na.rm=TRUE),
+                     n = dplyr::n(),
+                     sem=(sd/sqrt(n-1)),
+                     CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
+                     CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
+    ggplot(aes(month_period, mean))+
+    theme_minimal(13)+
+    annotate("rect",
+             xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
+             ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
+    geom_point(aes(color = area), size = 0.25)+
+    geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.4)+
+    stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
+    scale_fill_manual(values = area_colors)+
+    scale_color_manual(values = area_colors)+
+    scale_y_continuous(expand = c(0,0),
+                       limits = c(0,NA)) +
+    scale_x_date(date_breaks = "3 month",
+                 minor_breaks = NULL,
+                 labels = label_date,
+                 expand = c(0,0),
+                 limits = c(as.Date("2018-01-01"), NA)) +
+    facet_grid(area~.,scales = "free")+
+    theme(legend.position = "top",
+          strip.background = element_blank(),
+          strip.text = element_blank())+
+    labs(x = "Date",
+         y = "Fishermen x trip hours",
+         color = "",
+         fill = "")+
+    guides(colour = "none")
+
+```
+
+## **Catch composition**
+
+### **Catch per unit effort**
+
+(ref:CatchEffort) **Mean CPUE.** The mean catch (kg) per unit effort (fisher-hour) in Atauro island (light blue), north coast (dark blue) and south coast (green) for the period of September 2016 to March 2021, with the strata plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The error bars represent the standard error. The dashed line shows the linear regression with 95% confidence intervals. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
+
+```{r CatchEffort, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=6.5, fig.cap='(ref:CatchEffort)'}
+
+  report_data %>%
+    dplyr::filter(n_fishers > 0 & landing_survey_trip_duration>0) %>% 
+    dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
+                  weight = weight/1000,
+                  catch_effort = (weight / n_fishers) / landing_survey_trip_duration) %>% 
+    dplyr::group_by(area, month_period) %>% 
+    dplyr::summarise(mean = mean(catch_effort, na.rm =TRUE),
+                     sd = sd(catch_effort,na.rm=TRUE),
+                     n = dplyr::n(),
+                     sem=(sd/sqrt(n-1)),
+                     CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
+                     CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
+    ggplot(aes(month_period, mean))+
+    theme_minimal(13)+
+    annotate("rect",
+             xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
+             ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
+    geom_point(aes(color = area), size = 0.25)+
+    geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.4)+
+    stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
+    scale_fill_manual(values = area_colors)+
+    scale_color_manual(values = area_colors)+
+    scale_y_continuous(expand = c(0,0),
+                       limits = c(0,NA)) +
+    scale_x_date(date_breaks = "3 month",
+                 minor_breaks = NULL,
+                 labels = label_date,
+                 expand = c(0,0),
+                 limits = c(as.Date("2018-01-01"), NA)) +
+    facet_grid(area~.,scales = "free")+
+    theme(legend.position = "top",
+          strip.background = element_blank(),
+          strip.text = element_blank())+
+    labs(x = "Date",
+         y = "Weight (Kg) / fisher-hour",
+         color = "",
+         fill = "")+
+    guides(colour = "none")
+```
+
+### **Catch composition by region**
 
 (ref:IRIFishGroups) **Catch composition on the three strata using the Index of Relative Importance (IRI).** Catch composition using the Index of Relative Importance (IRI) of the landings of Atauro island, north coast, and south coast for the period of September 2016 to April 2021. The IRI considers the weight, the number, and the frequency of occurrence (FRQ) of a functional group.
 
@@ -87,7 +310,7 @@ report_data %>%
   dplyr::ungroup() %>%
   dplyr::transmute(
     area = area,
-    fish_group,
+    fish_group = as.factor(fish_group),
     weight_perc = weight / weight_tot * 100,
     individuals_perc = (individuals / individuals_tot * 100)*-1,
     obs_perc = as.factor(round(obs / obs_tot * 100, 0))
@@ -95,47 +318,88 @@ report_data %>%
   tidyr::pivot_longer(-c(area, fish_group, obs_perc)) %>%
   dplyr::ungroup() 
 
-# create function to iterate on arguments
-plot_fish_groups <- function(data, coast){
-  dat <- 
-    data %>% 
-    dplyr::filter(area == coast)
-  
-  y_label <- ifelse(unique(dat$area %in% "Atauro island"), "FRQ of occurrence", "")
-  
-  main_plot <- 
-    ggplot(dat, aes(obs_perc,value, fill = fish_group)) +
-    geom_chicklet(alpha = 0.75, radius = grid::unit(4, "pt"))+
-    geom_hline(yintercept = 0, size = 0.2, color = "grey30")+
-    coord_flip()+
-    theme_minimal()+
-    scale_fill_viridis_d(begin = 0, end = 1)+
-    scale_y_continuous(labels = absolute_percent, n.breaks = 7)+
-    scale_x_discrete(labels = paste_percent)+
-    labs(fill = "Functional group")+
-    theme(legend.position = "bottom",
-          legend.key.size = unit(0.7, 'cm'))+
-    guides(fill = guide_legend(nrow = 3,
-                               label.theme = element_text(size = 11)))
-  
-  leg <<-   
-    ggpubr::get_legend(main_plot) %>% 
-    ggpubr::as_ggplot()
-  
-  main_plot +
-    labs(x = y_label,
-         y = "N. individuals                      Weight",
-         title = coast)+
-    theme(legend.position = "none",
-          plot.title = element_text(hjust = 0.5))
-}
 
-all_plots <- purrr::map(unique(plot_dat$area), ~ plot_fish_groups(data = plot_dat, coast = .x))
+all_plots <- purrr::map(unique(plot_dat$area), ~ 
+                          plot_bar_grouped(data = plot_dat,
+                                           filter_var = .x,
+                                           fill_var = "fish_group",
+                                           facet_var = "area",
+                                           fill_scale = fish_colors,
+                                           fill_title = "Functional group"))
+
 main_plot <- cowplot::plot_grid(plotlist = all_plots, ncol = 3, align = "hv")
 
 cowplot::plot_grid(main_plot,
-                   leg,
+                   dummy_plot_legend,
                    ncol = 1, nrow=2,
                    rel_heights = c(3, 0.75))
+
+```
+
+### **Catch composition by gear type**
+
+(ref:IRIFishGear) **Catch composition of the four main gear types using the Index of Relative Importance (IRI)** Catch composition using the Index of Relative Importance (IRI) of the landings of gill nets, hand lines, long lines, and spear guns for the period of September 2016 to April 2021. The IRI considers the weight, the number, and the frequency of occurrence (FRQ) of a functional group.
+
+```{r IRIFishGear, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=9, fig.cap='(ref:IRIFishGear)'}
+# create base dataset for plotting
+plot_dat <- 
+  report_data %>%
+  dplyr::group_by(fish_group, gear_type) %>%
+  dplyr::summarise(
+    weight = sum(weight),
+    individuals = sum(individuals),
+    obs = dplyr::n()
+  ) %>%
+  dplyr::group_by(gear_type) %>%
+  dplyr::mutate(
+    weight_tot = sum(weight),
+    individuals_tot = sum(individuals),
+    obs_tot = sum(obs)
+  ) %>%
+  dplyr::ungroup() %>%
+  dplyr::transmute(
+    gear_type = gear_type,
+    fish_group = as.factor(fish_group),
+    weight_perc = weight / weight_tot * 100,
+    individuals_perc = (individuals / individuals_tot * 100)*-1,
+    obs_perc = as.factor(round(obs / obs_tot * 100, 1))
+  ) %>%
+  tidyr::pivot_longer(-c(gear_type, fish_group, obs_perc)) %>%
+  dplyr::ungroup() 
+
+
+all_plots <- purrr::map(c("gill net", "long line", "hand line", "spear gun"), ~ 
+                          plot_bar_grouped(data = plot_dat,
+                                           filter_var = .x,
+                                           fill_var = "fish_group",
+                                           facet_var = "gear_type",
+                                           fill_scale = fish_colors,
+                                           fill_title = "Functional group"))
+
+main_plot <- cowplot::plot_grid(plotlist = all_plots, ncol = 2, nrow = 2, align = "hv")
+
+cowplot::plot_grid(main_plot,
+                   dummy_plot_legend,
+                   ncol = 1, nrow=2,
+                   rel_heights = c(3, 0.75))
+
+```
+
+### **Length composition of functional groups**
+
+(ref:LengthArea) **Length composition of the functional groups.** Violin plots of the length (cm) of the catch for every functional group for Atauro island (light blue), north coast (dark blue), and south coast (green). The y-axis has free scaling for every functional group. The dot represents the median and the variance bars the first and third quartile.
+
+```{r LengthArea, echo=FALSE, message=FALSE, warning=FALSE, fig.height=6, fig.width=6, fig.cap='(ref:LengthArea)'}
+
+  report_data %>%
+  ggplot(aes(area, length, fill = area)) +
+  facet_wrap(.~fish_group, scales = "free", ncol = 3)+
+  theme_minimal(13)+
+  geom_boxplot(alpha = 0.3, size = 0.1)+
+  scale_fill_manual(values = area_colors)+
+  labs(y = "Length (cm)",
+       x = "",
+       fill = "")+
+  theme(legend.position = "none")
 
 ```

@@ -284,7 +284,10 @@ store_data <- function(...) {
       TRUE ~ NA_character_
     )) %>%
     dplyr::mutate(period = dplyr::case_when(
-      .data$landing_date < "2020-03-28" ~ "pre-pandemic", TRUE ~ "pandemic")) %>%
+      .data$landing_date < "2020-03-28" ~ "pre-pandemic", TRUE ~ "pandemic"),
+      area = as.factor(.data$area),
+      fish_group = as.factor(.data$fish_group),
+      gear_type = as.factor(.data$gear_type)) %>%
     dplyr::select(
       .data$trip_id:.data$landing_survey_trip_duration, .data$area,
       .data$reporting_region:.data$landing_value,
