@@ -4,8 +4,16 @@ default:
       key: gcs
       options:
         project: peskas
+        bucket: public-timor-dev
+        service_account_key: !expr readLines("auth/gcp-sa-peskas_ingestion-key.json")
+  storage_meta:
+    google:
+      key: gcs
+      options:
+        project: peskas
         bucket: timor
         service_account_key: !expr readLines("auth/gcp-sa-peskas_ingestion-key.json")
+
   public_storage:
     google:
       key: gcs

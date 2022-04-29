@@ -34,22 +34,24 @@ googleCloudStorageR::gcs_auth(json_file = "auth/gcp-sa-peskas_ingestion-key.json
 #'
 #' @examples
 #'
-#'  # Google Cloud Services
+#' # Google Cloud Services
 #' \dontrun{
-#'   authentication_details <- readLines("location_of_json_file.json")
-#'   cloud_storage_authenticate(
-#'     provider = "gcs",
-#'     options = list(service_account_key = authentication_details,
-#'                    bucket = "my-bucket"))
+#' authentication_details <- readLines("location_of_json_file.json")
+#' cloud_storage_authenticate(
+#'   provider = "gcs",
+#'   options = list(
+#'     service_account_key = authentication_details,
+#'     bucket = "my-bucket"
+#'   )
+#' )
 #' }
 cloud_storage_authenticate <- function(provider, options) {
-
   if ("gcs" %in% provider) {
     # Only need to authenticate if there is no token for downstream requests
     if (isFALSE(googleAuthR::gar_has_token())) {
       service_account_key <- options$service_account_key
-      temp_auth_file <- tempfile(fileext = 'json')
-      writeLines(service_account_key,temp_auth_file)
+      temp_auth_file <- tempfile(fileext = "json")
+      writeLines(service_account_key, temp_auth_file)
       googleCloudStorageR::gcs_auth(json_file = temp_auth_file)
     }
   }
@@ -94,46 +96,53 @@ cloud_storage_authenticate <- function(provider, options) {
 #'
 #' #' # Google Cloud Services
 #' \dontrun{
-#'   authentication_details <- readLines("location_of_json_file.json")
-#'   # obtain the latest version of all files corresponding to timor-landings-v2
-#'   cloud_object_name(
-#'     prefix = "timor-landings-v2",
-#'     version = "latest",
-#'     provider = "gcs",
-#'     options = list(service_account_key = authentication_details,
-#'                    bucket = "my-bucket"))
+#' authentication_details <- readLines("location_of_json_file.json")
+#' # obtain the latest version of all files corresponding to timor-landings-v2
+#' cloud_object_name(
+#'   prefix = "timor-landings-v2",
+#'   version = "latest",
+#'   provider = "gcs",
+#'   options = list(
+#'     service_account_key = authentication_details,
+#'     bucket = "my-bucket"
+#'   )
+#' )
 #'
-#'  # obtain a specific version of the structured data from timor-landings-v2
-#'   cloud_object_name(
-#'     prefix = "timor-landings-v2_raw",
-#'     version = "20210326084600_54617b",
-#'     extension = "csv",
-#'     provider = "gcs",
-#'     options = list(service_account_key = authentication_details,
-#'                    bucket = "my-bucket"))
+#' # obtain a specific version of the structured data from timor-landings-v2
+#' cloud_object_name(
+#'   prefix = "timor-landings-v2_raw",
+#'   version = "20210326084600_54617b",
+#'   extension = "csv",
+#'   provider = "gcs",
+#'   options = list(
+#'     service_account_key = authentication_details,
+#'     bucket = "my-bucket"
+#'   )
+#' )
 #' }
 #'
 cloud_object_name <- function(prefix, version = "latest", extension = "",
-                              provider, exact_match = FALSE, options){
-
+                              provider, exact_match = FALSE, options) {
   cloud_storage_authenticate(provider, options)
 
   if ("gcs" %in% provider) {
-
     gcs_files <- googleCloudStorageR::gcs_list_objects(
       bucket = options$bucket,
-      prefix = prefix)
+      prefix = prefix
+    )
 
     if (nrow(gcs_files) == 0) {
       return(character(0))
     }
 
     gcs_files_formatted <- gcs_files %>%
-      tidyr::separate(col = .data$name,
-                      into = c("base_name", "version", "ext"),
-                      # Version is separated with the "__" string
-                      sep = "__",
-                      remove = FALSE) %>%
+      tidyr::separate(
+        col = .data$name,
+        into = c("base_name", "version", "ext"),
+        # Version is separated with the "__" string
+        sep = "__",
+        remove = FALSE
+      ) %>%
       dplyr::filter(stringr::str_detect(.data$ext, paste0(extension, "$"))) %>%
       dplyr::group_by(.data$base_name, .data$ext)
 
@@ -147,11 +156,9 @@ cloud_object_name <- function(prefix, version = "latest", extension = "",
     if (version == "latest") {
       selected_rows <- selected_rows %>%
         dplyr::filter(max(.data$updated) == .data$updated)
-
     } else {
       selected_rows <- selected_rows %>%
         dplyr::filter(.data$version == version)
-
     }
 
     selected_rows$name
@@ -177,19 +184,20 @@ cloud_object_name <- function(prefix, version = "latest", extension = "",
 #'
 #' # Google Cloud Services
 #' \dontrun{
-#'   authentication_details <- readLines("location_of_json_file.json")
-#'   download_cloud_file(
-#'     name = "timor-landings-v2_metadata__20210326084600_54617b3__.json",
-#'     provider = "gcs",
-#'     options = list(service_account_key = authentication_details,
-#'                    bucket = "my-bucket"))
+#' authentication_details <- readLines("location_of_json_file.json")
+#' download_cloud_file(
+#'   name = "timor-landings-v2_metadata__20210326084600_54617b3__.json",
+#'   provider = "gcs",
+#'   options = list(
+#'     service_account_key = authentication_details,
+#'     bucket = "my-bucket"
+#'   )
+#' )
 #' }
-download_cloud_file <- function(name, provider, options, file = name){
-
+download_cloud_file <- function(name, provider, options, file = name) {
   cloud_storage_authenticate(provider, options)
 
   if ("gcs" %in% provider) {
-
     purrr::map2(
       name, file,
       ~ googleCloudStorageR::gcs_get_object(
@@ -199,18 +207,16 @@ download_cloud_file <- function(name, provider, options, file = name){
         overwrite = ifelse(is.null(options$overwrite), TRUE, options$overwrite)
       )
     )
-
   }
 
   file
 }
 
-get_file <- function(prefix){
-
-  if(prefix == "metadata-tables_preprocessed"){
-    options = pars$storage$google$options
+get_file <- function(prefix) {
+  if (prefix == "metadata-tables_preprocessed") {
+    options <- pars$storage_meta$google$options
   } else {
-    options = pars$public_storage$google$options
+    options <- pars$storage$google$options
   }
 
   filename <- cloud_object_name(
@@ -218,10 +224,13 @@ get_file <- function(prefix){
     provider = pars$storage$google$key,
     extension = "rds",
     options = options,
-    exact_match = TRUE)
-  download_cloud_file(name = filename,
-                      provider = pars$storage$google$key,
-                      options = options)
+    exact_match = TRUE
+  )
+  download_cloud_file(
+    name = filename,
+    provider = pars$storage$google$key,
+    options = options
+  )
 
   x <- readRDS(filename)
   file.remove(filename)
@@ -246,11 +255,13 @@ store_data <- function(...) {
   # Download file
   trips <- get_file("timor_trips")
   catch <- get_file("timor_catch")
+  metadata <- get_file("metadata-tables_preprocessed")
+
+
 
   catch_clean <-
     catch %>%
     dplyr::group_by(.data$trip_id, .data$catch_taxon) %>%
-    dplyr::filter(.data$individuals > 0 & .data$weight > 0) %>%
     dplyr::select(-c(.data$length_type, .data$Selenium_mu:.data$Vitamin_A_mu)) %>%
     dplyr::ungroup()
 
@@ -283,17 +294,39 @@ store_data <- function(...) {
       catch_taxon %in% c("RAX", "SDX", "CJX", "CLP", "GZP", "FLY", "KYX", "CLP", "MUL", "DSF", "MIL", "THF") ~ "Small pelagics",
       TRUE ~ NA_character_
     )) %>%
-    dplyr::mutate(period = dplyr::case_when(
-      .data$landing_date < "2020-03-28" ~ "pre-pandemic", TRUE ~ "pandemic"),
+    dplyr::mutate(
+      period = dplyr::case_when(
+        .data$landing_date < "2020-03-28" ~ "pre-pandemic", TRUE ~ "pandemic"
+      ),
       area = as.factor(.data$area),
       fish_group = as.factor(.data$fish_group),
-      gear_type = as.factor(.data$gear_type)) %>%
+      gear_type = as.factor(.data$gear_type)
+    ) %>%
     dplyr::select(
       .data$trip_id:.data$landing_survey_trip_duration, .data$area,
       .data$reporting_region:.data$landing_value,
       .data$fish_group, tidyselect::everything()
     ) %>%
     dplyr::filter(!is.na(.data$fish_group))
+
+  report_data <-
+    metadata$catch_types %>%
+    dplyr::rename(catch_taxon = interagency_code) %>%
+    dplyr::select(catch_taxon, catch_name_en) %>%
+    dplyr::rename(catch_name = catch_name_en) %>%
+    dplyr::left_join(report_data, by = "catch_taxon") %>%
+    dplyr::mutate(catch_name = dplyr::case_when(
+      .data$catch_name == "Jacks/Trevally/Other Scad" ~ "Jacks/Trevally",
+      .data$catch_name == "Tuna/Bonito/Other Mackerel" ~ "Tuna/Bonito",
+      .data$catch_name == "hort bodied mackerel" ~ "Short mackerel",
+      TRUE ~ .data$catch_name
+    )) %>%
+    dplyr::select(
+      .data$trip_id:.data$landing_survey_trip_duration, .data$area,
+      .data$reporting_region:.data$landing_value,
+      .data$fish_group, .data$catch_name, tidyselect::everything()
+    ) %>%
+    dplyr::filter(!is.na(.data$area))
 
   usethis::use_data(report_data, overwrite = TRUE)
 }
