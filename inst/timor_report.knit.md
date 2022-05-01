@@ -1,7 +1,7 @@
 ---
 title: "The fisheries of Timor-Leste"
 subtitle: "A detailed analysis of three years of small-scale fisheries catch and effort data in Timor-Leste"
-date: "Last compiled on 2022-04-29 19:23:14"
+date: "Last compiled on 2022-05-01 10:54:21"
 mainfont: Montserrat
 geometry: "left=3cm,right=3cm,top=2cm,bottom=2cm"
 output:
@@ -45,6 +45,10 @@ header-includes:
 <img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/IRIGearGroups-1.png" alt="(ref:IRIGearGroups)" width="864" />
 <p class="caption">(\#fig:IRIGearGroups)(ref:IRIGearGroups)</p>
 </div>
+
+Authors Sarah Jørgensen Veillat1, Alexander Tilley2,3, Joctan Dos Reis Lopes2, E. Fernando Cagua2, Lorenzo Longobardi2, Jeppe Kolding1
+
+Authors' Affiliations 1 University of Bergen 2 WorldFish, Penang, Malaysia 3 Università degli Studi di Ferrara, Italy
 
 # **Effort and landings**
 
@@ -148,7 +152,6 @@ header-includes:
 
 (ref:MarketValue) **Mean market value (USD) per kg of the catch.** Mean market value (USD) per kg of the catch for Atauro island (light blue), north coast (dark blue) and south coast (green), during the period of July 2019 to April 2021. The error bars represent the standard error. The dashed line shows the linear regression with 95% confidence intervals for each stratum. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
 
-
 <div class="figure">
 <img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/MarketValue-1.png" alt="(ref:MarketValue)" width="624" />
 <p class="caption">(\#fig:MarketValue)(ref:MarketValue)</p>
@@ -164,6 +167,6 @@ header-includes:
 (ref:ValueFish) **Mean market value (USD) per kg of the catch of the most frequently caught functional groups** in Atauro Island (light blue), north coast (dark blue) and south coast (green), during the period of July 2019 to April 2021. The error bars represent the standard error. The y-axis has free scaling for every functional group. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
 
 <div class="figure">
-<img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/ValueFish-1.png" alt="(ref:ValueFish)" width="624" />
+<img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/ValueFish-1.png" alt="(ref:ValueFish)" width="672" />
 <p class="caption">(\#fig:ValueFish)(ref:ValueFish)</p>
 </div>

@@ -121,7 +121,7 @@ plot_bar_grouped <- function(data = NULL,
   
   main_plot <- 
     ggplot(dat, aes(obs_perc,value, fill = dat[,fill_var][[1]])) +
-    theme_minimal(13.5)+
+    theme_minimal(12.5)+
     geom_chicklet(alpha = 0.75, radius = grid::unit(4, "pt"))+
     geom_hline(yintercept = 0, size = 0.2, color = "grey30")+
     coord_flip()+
@@ -132,7 +132,7 @@ plot_bar_grouped <- function(data = NULL,
   
   main_plot +
     labs(x = y_label,
-         y = "N. individuals                      Weight",
+         y = "N. individuals                 Weight",
          title = filter_var)+
     theme(legend.position = "none",
           plot.title = element_text(hjust = 0.5))
@@ -200,6 +200,10 @@ cowplot::plot_grid(main_plot,
                    rel_heights = c(3, 0.75))
 
 ```
+
+Authors Sarah Jørgensen Veillat1, Alexander Tilley2,3, Joctan Dos Reis Lopes2, E. Fernando Cagua2, Lorenzo Longobardi2, Jeppe Kolding1
+
+Authors' Affiliations 1 University of Bergen 2 WorldFish, Penang, Malaysia 3 Università degli Studi di Ferrara, Italy
 
 # **Effort and landings**
 
@@ -855,7 +859,6 @@ cowplot::plot_grid(p1,p2,ncol =1,
 
 (ref:MarketValue) **Mean market value (USD) per kg of the catch.** Mean market value (USD) per kg of the catch for Atauro island (light blue), north coast (dark blue) and south coast (green), during the period of July 2019 to April 2021. The error bars represent the standard error. The dashed line shows the linear regression with 95% confidence intervals for each stratum. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
 
-
 ```{r MarketValue, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3.5, fig.width=6.5, fig.cap='(ref:MarketValue)'}
 
 report_data %>%
@@ -964,7 +967,7 @@ report_data %>%
 
 (ref:ValueFish) **Mean market value (USD) per kg of the catch of the most frequently caught functional groups** in Atauro Island (light blue), north coast (dark blue) and south coast (green), during the period of July 2019 to April 2021. The error bars represent the standard error. The y-axis has free scaling for every functional group. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
 
-```{r ValueFish, echo=FALSE, message=FALSE, warning=FALSE, fig.height=6.5, fig.width=6.5, fig.cap='(ref:ValueFish)'}
+```{r ValueFish, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7.5, fig.width=7, fig.cap='(ref:ValueFish)'}
 
 report_data %>%
   dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month")) %>% 
@@ -1011,7 +1014,7 @@ report_data %>%
                expand = c(0,0),
                limits = c(as.Date("2019-01-01"), NA)) +
   theme(legend.position = "top")+
-  labs(x = "",
+  labs(x = "Date",
        y = "Price per Kg catch",
        color = "",
        fill = "")+
