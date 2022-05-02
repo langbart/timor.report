@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.13.2 (TeX Live 2021)  (format=lualatex 2022.3.5)  2 MAY 2022 19:52
+This is LuaHBTeX, Version 1.13.2 (TeX Live 2021)  (format=lualatex 2022.3.5)  2 MAY 2022 21:44
  restricted system commands enabled.
 **"/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report.tex"
 ("/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report.tex"
@@ -1187,15 +1187,15 @@ Here is how much of LuaTeX's memory you used:
  100000,953878 words of node,token memory allocated
  776 words of node memory still in use:
    6 hlist, 2 vlist, 2 rule, 2 glue, 4 kern, 1 glyph, 31 attribute, 62 glue_spec, 31 attribute_list, 1 write, 1 user_defined, 23 pdf_action nodes
-   avail lists: 1:1,2:1297,3:458,4:177,5:1534,6:201,7:9226,8:57,9:1167,10:26,11:606
+   avail lists: 1:1,2:1297,3:458,4:177,5:1549,6:201,7:9318,8:57,9:1167,10:26,11:606
  40284 multiletter control sequences out of 65536+600000
- 86 fonts using 27824671 bytes
+ 86 fonts using 27824291 bytes
  86i,7n,122p,2935b,464s stack positions out of 5000i,500n,10000p,200000b,80000s
 </Users/lore/Library/TinyTeX/texmf-dist/fonts/opentype/public/lm-math/latinmodern-math.otf></Users/lore/Library/TinyTeX/texmf-dist/fonts/opentype/public/montserrat/Montserrat-Bold.otf></Users/lore/Library/TinyTeX/texmf-dist/fonts/opentype/public/montserrat/Montserrat-Regular.otf>
-Output written on timor_report.pdf (33 pages, 3648957 bytes).
+Output written on timor_report.pdf (33 pages, 3649310 bytes).
 
-PDF statistics: 611 PDF objects out of 1000 (max. 8388607)
- 523 compressed objects within 6 object streams
+PDF statistics: 610 PDF objects out of 1000 (max. 8388607)
+ 522 compressed objects within 6 object streams
  106 named destinations out of 1000 (max. 131072)
  201 words of extra memory for PDF output out of 10000 (max. 100000000)
 

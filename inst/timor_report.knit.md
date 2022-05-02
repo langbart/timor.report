@@ -271,7 +271,7 @@ To calculate the trip effort the duration of a trip (hours) was multiplied with 
 
 The trip effort (fisher-hours) of the three regions appears to be quite similar (fig. \@ref(fig:TripEffort)a). The trip effort mostly ranges between five to ten fisher-hours, with a peaks reaching up to 30 fisher-hours in the South Coast. There seems to be no clear trends in trip effort over time among the regions (fig. \@ref(fig:TripEffort)b).
 
-(ref:TripEffort) **Mean trip effort.** The mean effort (fishermen \* hours) of a fishing trip in Atauro island (grey), north coast (red) and south coast (light blue) for the period of May 2018 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y-axis has free scaling. The colored shaded areas represent the 95% confidence interval. The grey shaded area tdefine the pandemic period starting from the COVID-19 lockdown on 28 March 2020.
+(ref:TripEffort) **Mean trip effort.** The mean effort (fishermen \* hours) of a fishing trip in Atauro island (grey), north coast (red) and south coast (light blue) for the period of May 2018 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y-axis has free scaling. The colored shaded areas represent the 95% confidence interval. The grey shaded area define the pandemic period starting from the COVID-19 lockdown on 28 March 2020.
 
 ![(\#fig:TripEffort)(ref:TripEffort)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/TripEffort-1.pdf) 
 
@@ -330,7 +330,7 @@ The landings seem to increase over time on the south coast, while remaining cons
 
 \
 
-(ref:MonthlyCatch) **Estimate of total monthly catch (tons).** Estimate of the total monthly catch (tons) for Atauro island (grey), north coast (red) and south coast (light blue), during the period of February 2018 to March 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The dashed line shows the linear regression with 95% confidence intervals. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
+(ref:MonthlyCatch) **Estimate of total monthly catch (tons).** Estimate of the total monthly catch (tons) for Atauro island (grey), north coast (red) and south coast (light blue), during the period of February 2018 to March 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
 
 ## **Seasonality**
 
@@ -360,7 +360,7 @@ An interesting difference between the regions is that at the north coast a large
 
 Most of the fish being kept for own consumption is smaller sized fish and fish species, with some exceptions such as the Cobia (Rachycentron canadum) and the Moray eel (Gymnothorax spp.) (fig. \@ref(fig:UsageProp); fig. \@ref(fig:LengthUsage)). Large-size fish and fish species are often easier to sell, as they look more appetising and are in demand by the restaurants and urban population (Venugopa & Shahidi, 1995). 
 
-(ref:Usage) **Destination of catch over time.** The mean weight (kg) per week of the sampled catch being sold on market, kept for own consumption, or both on Atauro island (grey), north coast (red), and south coast (light blue) in the period of September 2016 to March 2021. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020. The y-axis has free scaling.
+(ref:Usage) **Destination of catch over time.** The mean weight (kg) per week of the sampled catch being sold on market, kept for own consumption, or both on Atauro island (grey), north coast (red), and south coast (light blue) in the period of April 2018 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling.
 
 ![(\#fig:Usage)(ref:Usage)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/Usage-1.pdf) 
 
@@ -368,7 +368,7 @@ Most of the fish being kept for own consumption is smaller sized fish and fish s
 
 ![(\#fig:UsageProp)(ref:UsageProp)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/UsageProp-1.pdf) 
 
-(ref:LengthUsage) **Bar plot of the destination of the catch per length groups.** (a) Percentage of the catch and (b) weight (kg) of the catch being used to sell on market (brown), for own consumption (light green), or both (grey) versus the size (cm) of the fish caught. The catch is divided into 50 length groups. Entries without any information on the destination of the catch are shown in red.
+(ref:LengthUsage) **Bar plot of the destination of the catch per length groups.** (a) Percentage of the catch and (b) weight (kg) of the catch being used to sell on market (brown), for own consumption (light green), or both (grey) versus the size (cm) of the fish caught. The catch is divided into 50 length groups.
 
 ![(\#fig:LengthUsage)(ref:LengthUsage)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthUsage-1.pdf) 
 
@@ -386,15 +386,15 @@ Before Covid, the selling price per kg of catch was slight higher in the South C
 
 After Covid, both the South and North coasts were characterized by a consistent increase in the price per kg of catch, but while in the North the trend kept increasing, the South Coast showed a quick drop in the average price.
 
-(ref:MarketValue) **Mean market value (USD) per kg of the catch.** Mean market value (USD) per kg of the catch for Atauro island (grey), north coast (red) and south coast (light blue), during the period of July 2019 to April 2021. The error bars represent the standard error. The dashed line shows the linear regression with 95% confidence intervals for each region. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
+(ref:MarketValue) **Mean market value (USD) per kg of the catch.** Mean market value (USD) per kg of the catch for Atauro island (grey), north coast (red) and south coast (light blue), during the period of January 2019 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
 
 ![(\#fig:MarketValue)(ref:MarketValue)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/MarketValue-1.pdf) 
 
-(ref:ValueGear) **Mean market value (USD) per kg of the catch of the most used gear types.** Mean market value (USD) per kg of the catch in gill nets, hand lines, long lines, and spear guns during the period of July 2019 to April 2021. The error bars represent the standard error. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020. The y-axis has free scaling for every gear type.
+(ref:ValueGear) **Mean market value (USD) per kg of the catch of the most used gear types.** Mean market value (USD) per kg of the catch in gill nets, hand lines, long lines, and spear guns during the period of April 2019 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling for every gear type.
 
 ![(\#fig:ValueGear)(ref:ValueGear)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueGear-1.pdf) 
 
-(ref:ValueFish) **Mean market value (USD) per kg of the catch of the most frequently caught functional groups** in Atauro Island (grey), north coast (red) and south coast (light blue), during the period of July 2019 to April 2021. The error bars represent the standard error. The y-axis has free scaling for every functional group. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
+(ref:ValueFish) **Mean market value (USD) per kg of the catch of the most frequently caught functional groups** in Atauro Island (grey), north coast (red) and south coast (light blue), during the period of January 2019 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling for every functional group.
 
 ![(\#fig:ValueFish)(ref:ValueFish)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueFish-1.pdf) 
 
@@ -416,4 +416,4 @@ Furthermore, during the pandemic, Timor-Leste experienced a higher level of food
 
 As for Timor-Leste, this report only describes and analyses a part of the fishery. PeskAAS includes large amounts of information, making it possible to conduct more in-depth analyses on specific matters. For instance, the length distribution of the catches could be studied, to assess the fishing pattern by sizes. As the monitoring program will remain active, it will also be possible to conduct studies over longer time periods, making it easier to discover trends. Furthermore, it is recommended to continue analysing the impact of the COVID-19 pandemic and other drivers on the fisheries. This study only includes data up to March 2021, and until that date there were no significant outbreaks nor any deaths due to the virus in Timor-Leste [(World Health Organization, 2021)](https://paperpile.com/c/Yw05cY/ya06). However, since then the country has suffered their first serious outbreak, and to date (28 July 2021) there have been 10,535 cases and 26 deaths confirmed [(World Health Organization, 2021)](https://paperpile.com/c/Yw05cY/ya06). During the same period, Timor-Leste also had to grapple with severe floods and landslides caused by heavy rains [(Un Rco, 2021)](https://paperpile.com/c/Yw05cY/plqT). These calamities will have had a serious impact on the health and economy of the country, and the impact on the fisheries should be closely monitored.
 
-#  **References**
+# **References**
