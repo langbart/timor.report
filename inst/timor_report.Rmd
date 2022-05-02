@@ -221,7 +221,7 @@ While the impacts of the COVID-19 pandemic on fisheries is not a major focus of 
 
 Timor-Leste is surrounded by Indonesia to the west, north and east, and Australia to the south with the Timor Sea in between (fig. \@ref(fig:timormap)). It has a coastline of 783 km and a total land area of around 14,954 km2 [(Lopes et al., 2019)](https://paperpile.com/c/Yw05cY/5UXn). Atauro island, with a land area of around 140km2, has a population of around 10,000 [(General Directorate of Statistics, 2015; Lopes et al., 2019)](https://paperpile.com/c/Yw05cY/vg6Z+5UXn). The country counts around 1.3 million citizens which is expected to triple by 2050 [(Molyneux et al., 2012)](https://paperpile.com/c/Yw05cY/qknt). Most cities, including the capital Dili, are located on the north coast. Consequently, this is where the majority of the people are situated: over 60% of the total population lives on the north coast and around 20% on the south coast (General Directorate of Statistics, 2015). Most economic activity is centred around Dili, and the rural population experience higher poverty rates than people living in urban areas (Moxham & Carapic, 2013).
 
-It has a tropical climate, with temperatures at the coast ranging from 25 to 30 degrees Celsius all year round and with a pronounced wet (December to May) and dry season (June to November) (fig. \@ref(fig:timorclimate)) [(Timor-Leste National Directorate of Meteorology and Geophysics, Australian Bureau of Meteorology and Commonwealth Scientific and Industrial Research Organisation (CSIRO), 2015)](https://paperpile.com/c/Yw05cY/T09Z). This seasonality pattern of the rainfall experiences between-year fluctuations, caused by the El Niño-Southern Oscillation (ENSO) and the Indian Ocean Dipole (IOD) [(Australian Bureau of Meteorology and Csiro, 2014)](https://paperpile.com/c/Yw05cY/1puf). The mountain range separating the northern coast of the southern (fig. \@ref(fig:timormap)) causes different rainfall patterns on the two coasts [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). The seas on the south coast are rougher than on the north coast due to cyclones coming from the Indian Ocean. The south coast has a shallow slope, while the north coast has a very steep slope, quickly descending to several kilometres depth (fig. \@ref(fig:timor_bat)). The coral reefs are predominantly fringing reefs, located for the most part on the north coast and around Atauro island [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). 
+It has a tropical climate, with temperatures at the coast ranging from 25 to 30 degrees Celsius all year round and with a pronounced wet (December to May) and dry season (June to November) (fig. \@ref(fig:timorclimate)) [(Timor-Leste National Directorate of Meteorology and Geophysics, Australian Bureau of Meteorology and Commonwealth Scientific and Industrial Research Organisation (CSIRO), 2015)](https://paperpile.com/c/Yw05cY/T09Z). This seasonality pattern of the rainfall experiences between-year fluctuations, caused by the El Niño-Southern Oscillation (ENSO) and the Indian Ocean Dipole (IOD) [(Australian Bureau of Meteorology and Csiro, 2014)](https://paperpile.com/c/Yw05cY/1puf). The mountain range separating the northern coast of the southern (fig. \@ref(fig:timormap)) causes different rainfall patterns on the two coasts [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). The seas on the south coast are rougher than on the north coast due to cyclones coming from the Indian Ocean. The south coast has a shallow slope, while the north coast has a very steep slope, quickly descending to several kilometres depth (fig. \@ref(fig:timorbat)). The coral reefs are predominantly fringing reefs, located for the most part on the north coast and around Atauro island [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). 
 
 For the purpose of this study, the coastal municipalities were grouped into three statistical areas: Atauro island, the north coast, and the south coast (fig. \@ref(fig:timormuni): grey, red, and light blue, respectively). The landing sites of Manatuto and Lautém are located on the north coast and have therefore been assigned to the north coast region, even though the municipalities border both coasts. The municipalities Ermera and Aileu do not have a coastline and are thus not included. These areas were chosen due to their difference in rainfall pattern, wave activity, marine landscape, and demographics mentioned above.
 
@@ -389,10 +389,6 @@ cowplot::plot_grid(main_plot,
                    rel_heights = c(3, 0.75))
 
 ```
-
-Authors Sarah Jørgensen Veillat1, Alexander Tilley2,3, Joctan Dos Reis Lopes2, E. Fernando Cagua2, Lorenzo Longobardi2, Jeppe Kolding1
-
-Authors' Affiliations 1 University of Bergen 2 WorldFish, Penang, Malaysia 3 Università degli Studi di Ferrara, Italy
 
 # **Effort and landings**
 
@@ -1122,11 +1118,8 @@ Before Covid, the selling price per kg of catch was slight higher in the South C
 
 After Covid, both the South and North coasts were characterized by a consistent increase in the price per kg of catch, but while in the North the trend kept increasing, the South Coast showed a quick drop in the average price.
 
-<<<<<<< HEAD
-=======
 (ref:MarketValue) **Mean market value (USD) per kg of the catch.** Mean market value (USD) per kg of the catch for Atauro island (grey), north coast (red) and south coast (light blue), during the period of July 2019 to April 2021. The error bars represent the standard error. The dashed line shows the linear regression with 95% confidence intervals for each region. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
 
->>>>>>> 368d101c32574ff3111740f3402fbc4591d7571c
 ```{r MarketValue, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3.5, fig.width=6.5, fig.cap='(ref:MarketValue)'}
 
 single_catches <- 
@@ -1254,16 +1247,12 @@ report_data %>%
 
 ```{r ValueFish, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=7, fig.cap='(ref:ValueFish)'}
 
-<<<<<<< HEAD
-```{r ValueFish, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7.5, fig.width=7, fig.cap='(ref:ValueFish)'}
-=======
 single_catches <- 
   report_data %>% 
   group_by(trip_id) %>% 
   dplyr::count(catch_taxon) %>% 
   dplyr::filter(n<=12) %>% 
   magrittr::extract2("trip_id")
->>>>>>> 368d101c32574ff3111740f3402fbc4591d7571c
 
 report_data %>%
   dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
@@ -1348,4 +1337,4 @@ Furthermore, during the pandemic, Timor-Leste experienced a higher level of food
 
 As for Timor-Leste, this report only describes and analyses a part of the fishery. PeskAAS includes large amounts of information, making it possible to conduct more in-depth analyses on specific matters. For instance, the length distribution of the catches could be studied, to assess the fishing pattern by sizes. As the monitoring program will remain active, it will also be possible to conduct studies over longer time periods, making it easier to discover trends. Furthermore, it is recommended to continue analysing the impact of the COVID-19 pandemic and other drivers on the fisheries. This study only includes data up to March 2021, and until that date there were no significant outbreaks nor any deaths due to the virus in Timor-Leste [(World Health Organization, 2021)](https://paperpile.com/c/Yw05cY/ya06). However, since then the country has suffered their first serious outbreak, and to date (28 July 2021) there have been 10,535 cases and 26 deaths confirmed [(World Health Organization, 2021)](https://paperpile.com/c/Yw05cY/ya06). During the same period, Timor-Leste also had to grapple with severe floods and landslides caused by heavy rains [(Un Rco, 2021)](https://paperpile.com/c/Yw05cY/plqT). These calamities will have had a serious impact on the health and economy of the country, and the impact on the fisheries should be closely monitored.
 
-\
+#  **References**
