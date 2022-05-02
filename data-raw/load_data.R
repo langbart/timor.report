@@ -287,7 +287,7 @@ store_data <- function(...) {
       catch_taxon %in% c("MZZ") ~ "Unknown",
       catch_taxon %in% c("SLV", "CRA") ~ "Crustaceans",
       catch_taxon %in% c("OCZ", "IAX") ~ "Cephalopods",
-      catch_taxon %in% c("SKH", "SRX") ~ "Shark and rays",
+      catch_taxon %in% c("SKH", "SRX") ~ "Sharks and rays",
       catch_taxon %in% c("SNA", "GPX", "PWT", "SUR", "GRX", "MUI", "BGX") ~ "Large demersals",
       catch_taxon %in% c("CGX", "TUN", "BEN", "LWX", "BAR", "SFA", "CBA", "DOX", "ECN", "DOS") ~ "Large pelagics",
       catch_taxon %in% c("YDX", "SPI", "EMP", "SUR", "TRI", "MOJ", "WRA", "MOO", "BWH", "LGE", "MOB", "MHL", "GOX", "THO", "IHX", "APO", "IHX", "PUX", "DRZ") ~ "Small demersals",

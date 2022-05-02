@@ -9,17 +9,17 @@ output:
     fig_caption: yes
     toc: true
     toc_depth: 2
-  bookdown::pdf_document2:
-    latex_engine: lualatex
-    toc: true
-    toc_depth: 2
-    number_sections: true
-    fig_caption: yes
   bookdown::word_document2:
     number_sections: true
     fig_caption: yes
     toc: true
     toc_depth: 2
+  bookdown::pdf_document2:
+    latex_engine: lualatex
+    toc: false
+    toc_depth: 2
+    number_sections: true
+    fig_caption: yes
 header-includes: 
   - \usepackage{float} 
   - \floatplacement{figure}{H}
@@ -42,13 +42,7 @@ urlcolor: myblue
 
 Sarah Jørgensen Veillat ^1^, Alexander Tilley^2,3^, Joctan Dos Reis Lopes^2^, E. Fernando Cagua^2^, Lorenzo Longobardi^2^, Jeppe Kolding^1^
 
-**Authors' Affiliations**
-
-1 University of Bergen
-
-2 WorldFish, Penang, Malaysia
-
-3 Università degli Studi di Ferrara, Italy
+^1^ University of Bergen, ^2^ WorldFish, Penang, Malaysia, ^3^Università degli Studi di Ferrara, Italy
 
 \tableofcontents
 
@@ -117,123 +111,148 @@ While the impacts of the COVID-19 pandemic on fisheries is not a major focus of 
 
 # **Study area**
 
-Timor-Leste is surrounded by Indonesia to the west, north and east, and Australia to the south with the Timor Sea in between (fig. <a href="#fig:timormap">0.1</a>). It has a coastline of 783 km and a total land area of around 14,954 km2 [(Lopes et al., 2019)](https://paperpile.com/c/Yw05cY/5UXn). Atauro island, with a land area of around 140km2, has a population of around 10,000 [(General Directorate of Statistics, 2015; Lopes et al., 2019)](https://paperpile.com/c/Yw05cY/vg6Z+5UXn). The country counts around 1.3 million citizens which is expected to triple by 2050 [(Molyneux et al., 2012)](https://paperpile.com/c/Yw05cY/qknt). Most cities, including the capital Dili, are located on the north coast. Consequently, this is where the majority of the people are situated: over 60% of the total population lives on the north coast and around 20% on the south coast (General Directorate of Statistics, 2015). Most economic activity is centred around Dili, and the rural population experience higher poverty rates than people living in urban areas (Moxham & Carapic, 2013).
+Timor-Leste is surrounded by Indonesia to the west, north and east, and Australia to the south with the Timor Sea in between (fig. \@ref(fig:timormap)). It has a coastline of 783 km and a total land area of around 14,954 km2 [(Lopes et al., 2019)](https://paperpile.com/c/Yw05cY/5UXn). Atauro island, with a land area of around 140km2, has a population of around 10,000 [(General Directorate of Statistics, 2015; Lopes et al., 2019)](https://paperpile.com/c/Yw05cY/vg6Z+5UXn). The country counts around 1.3 million citizens which is expected to triple by 2050 [(Molyneux et al., 2012)](https://paperpile.com/c/Yw05cY/qknt). Most cities, including the capital Dili, are located on the north coast. Consequently, this is where the majority of the people are situated: over 60% of the total population lives on the north coast and around 20% on the south coast (General Directorate of Statistics, 2015). Most economic activity is centred around Dili, and the rural population experience higher poverty rates than people living in urban areas (Moxham & Carapic, 2013).
 
-It has a tropical climate, with temperatures at the coast ranging from 25 to 30 degrees Celsius all year round and with a pronounced wet (December to May) and dry season (June to November) (fig. <a href="#fig:timorclimate">0.2</a>) [(Timor-Leste National Directorate of Meteorology and Geophysics, Australian Bureau of Meteorology and Commonwealth Scientific and Industrial Research Organisation (CSIRO), 2015)](https://paperpile.com/c/Yw05cY/T09Z). This seasonality pattern of the rainfall experiences between-year fluctuations, caused by the El Niño-Southern Oscillation (ENSO) and the Indian Ocean Dipole (IOD) [(Australian Bureau of Meteorology and Csiro, 2014)](https://paperpile.com/c/Yw05cY/1puf). The mountain range separating the northern coast of the southern (fig. <a href="#fig:timormap">0.1</a>) causes different rainfall patterns on the two coasts [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). The seas on the south coast are rougher than on the north coast due to cyclones coming from the Indian Ocean. The south coast has a shallow slope, while the north coast has a very steep slope, quickly descending to several kilometres depth (fig. \@ref(fig:timor_bat)). The coral reefs are predominantly fringing reefs, located for the most part on the north coast and around Atauro island [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). 
+It has a tropical climate, with temperatures at the coast ranging from 25 to 30 degrees Celsius all year round and with a pronounced wet (December to May) and dry season (June to November) (fig. \@ref(fig:timorclimate)) [(Timor-Leste National Directorate of Meteorology and Geophysics, Australian Bureau of Meteorology and Commonwealth Scientific and Industrial Research Organisation (CSIRO), 2015)](https://paperpile.com/c/Yw05cY/T09Z). This seasonality pattern of the rainfall experiences between-year fluctuations, caused by the El Niño-Southern Oscillation (ENSO) and the Indian Ocean Dipole (IOD) [(Australian Bureau of Meteorology and Csiro, 2014)](https://paperpile.com/c/Yw05cY/1puf). The mountain range separating the northern coast of the southern (fig. \@ref(fig:timormap)) causes different rainfall patterns on the two coasts [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). The seas on the south coast are rougher than on the north coast due to cyclones coming from the Indian Ocean. The south coast has a shallow slope, while the north coast has a very steep slope, quickly descending to several kilometres depth (fig. \@ref(fig:timor_bat)). The coral reefs are predominantly fringing reefs, located for the most part on the north coast and around Atauro island [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). 
 
-For the purpose of this study, the coastal municipalities were grouped into three statistical areas: Atauro island, the north coast, and the south coast (fig. <a href="#fig:timormuni">0.4</a>: grey, red, and light blue, respectively). The landing sites of Manatuto and Lautém are located on the north coast and have therefore been assigned to the north coast region, even though the municipalities border both coasts. The municipalities Ermera and Aileu do not have a coastline and are thus not included. These areas were chosen due to their difference in rainfall pattern, wave activity, marine landscape, and demographics mentioned above.
+For the purpose of this study, the coastal municipalities were grouped into three statistical areas: Atauro island, the north coast, and the south coast (fig. \@ref(fig:timormuni): grey, red, and light blue, respectively). The landing sites of Manatuto and Lautém are located on the north coast and have therefore been assigned to the north coast region, even though the municipalities border both coasts. The municipalities Ermera and Aileu do not have a coastline and are thus not included. These areas were chosen due to their difference in rainfall pattern, wave activity, marine landscape, and demographics mentioned above.
 
+(ref:timormap) **Map of Timor-Leste and its surroundings.** The colours show the elevation from 0 meters above sea-level (green) to 2000+ meters above sea-level (orange brown). The size of the points show the size of the cities. The small map on the right side shows the placement of the country compared to the rest of Southeast Asia and Australia. Source: Geoatlas (2018)
 
+\begin{figure}
 
-![Figure 0.1: **Map of Timor-Leste and its surroundings.** The colours show the elevation from 0 meters above sea-level (green) to 2000+ meters above sea-level (orange brown). The size of the points show the size of the cities. The small map on the right side shows the placement of the country compared to the rest of Southeast Asia and Australia. Source: Geoatlas (2018)](timor_maps/timor_map.png)
+\includegraphics[width=12.56in]{timor_maps/timor_map} \hfill{}
 
+\caption{(ref:timormap)}(\#fig:timormap)
+\end{figure}
 
+(ref:timorclimate) **Seasonal rainfall and sea surface temperature in Timor-Leste.** Seasonal rainfall and sea surface temperature in Timor-Leste, measured in Dili. Source: Timor-Leste National Directorate of Meteorology and Geophysics et al. (2015).
 
-![Figure 0.2: **Seasonal rainfall and sea surface temperature in Timor-Leste.** Seasonal rainfall and sea surface temperature in Timor-Leste, measured in Dili. Source: Timor-Leste National Directorate of Meteorology and Geophysics et al. (2015)](timor_maps/timor_temp_rain.png)
+\begin{figure}
 
+\includegraphics[width=12.56in]{timor_maps/timor_temp_rain} \hfill{}
 
+\caption{(ref:timorclimate)}(\#fig:timorclimate)
+\end{figure}
 
-![Figure 0.3: **Map of Timor-Leste and its surroundings.** The colours show the elevation from 0 meters above sea-level (green) to 2000+ meters above sea-level (orange brown). The size of the points show the size of the cities. The small map on the right side shows the placement of the country compared to the rest of Southeast Asia and Australia. Source: Geoatlas (2018)](timor_maps/timor_bat.png)
+(ref:timorbat) **Map of Timor-Leste and its surroundings.** The colours show the elevation from 0 meters above sea-level (green) to 2000+ meters above sea-level (orange brown). The size of the points show the size of the cities. The small map on the right side shows the placement of the country compared to the rest of Southeast Asia and Australia. Source: Geoatlas (2018).
 
+\begin{figure}
 
+\includegraphics[width=12.56in]{timor_maps/timor_bat} \hfill{}
 
-![Figure 0.4: **A map of Timor-Leste and its municipalities.** The dots represent the landing sites where catch and trip information were recorded\*. The colours represent the different regions: Atauro island (blue), north coast (yellow), and south coast (green). Source: Tilley et al. (2020). \*Not all landing sites are shown on this map, only the ones where enumerators are presently active.](timor_maps/timor_muni.png)
+\caption{(ref:timorbat)}(\#fig:timorbat)
+\end{figure}
+
+(ref:timormuni) **A map of Timor-Leste and its municipalities.** The dots represent the landing sites where catch and trip information were recorded\*. The colours represent the different regions: Atauro island (blue), north coast (yellow), and south coast (green). Source: Tilley et al. (2020). \*Not all landing sites are shown on this map, only the ones where enumerators are presently active.
+
+\begin{figure}
+
+\includegraphics[width=12.56in]{timor_maps/timor_muni} \hfill{}
+
+\caption{(ref:timormuni)}(\#fig:timormuni)
+\end{figure}
 
 # Fishing fleet and gear
 
 ## **The sampled fishing fleet**
 
-Of the 2277 fishing boats registered at the Timor-Leste Ministry of Agriculture and Fisheries (2018), 323 were used to report catch and/or tracking data to PeskAAS (tab 1). The 323 sampled boats include both motorboats with in- or outboard motor and paddle canoes (tab 2).
+Of the 2277 fishing boats registered at the Timor-Leste Ministry of Agriculture and Fisheries (2018), 323 were used to report catch and/or tracking data to PeskAAS (tab. 1). The 323 sampled boats include both motorboats with in- or outboard motor and paddle canoes (tab. 2).
 
 The differences seen in the characteristics of the fishing boats between the areas are likely influenced by social, geographical, economical and political factors. The north coast is where the capital Dili and most of the other cities are located, and where most of the economic activity is centred around, making it the richer region. Therefore, more people can invest in motorboats. By contrast, the more rural south coast, predominantly fishes in paddle-driven canoes, which is likely a result of the poor infrastructure and the higher poverty rates of that part of the country [(Braithwaite, Charlesworth and Soares, 2012; Moxham and Carapic, 2013; Ingram, Kent and McWilliam, 2015)](https://paperpile.com/c/Yw05cY/K6Lc+d9cp+mGGb). Investing in a motorboat will therefore likely not be an option for most. Furthermore, wooden boats can be locally made, whereas fibreglass boats have to be imported and/or be funded by the government. People would need to have contacts within the government or have strong Indonesian connections to be able to afford a fibreglass boat brought to Timor.
 
 Table 1: **Total number of sampled and registered fishing boats per region.** Information on the number of registered fishing boats was obtained from the Timor-Leste Ministry of Agriculture and Fisheries (2018).
 
-+:--------------:+:-------------:+:-------------------------:+:----------------:+
-| Region         | Sampled boats | Registered fishing boats  | Boats sampled    |
-+----------------+---------------+---------------------------+------------------+
-| Atauro Island  | 89            | 348                       | 25.6%            |
-+----------------+---------------+---------------------------+------------------+
-| North Coast    | 129           | 1463                      | 8.8%             |
-+----------------+---------------+---------------------------+------------------+
-| South Coast    | 105           | 466                       | 22.5%            |
-+----------------+---------------+---------------------------+------------------+
-| Total          | 323           | 2277                      | 14.2%            |
-+----------------+---------------+---------------------------+------------------+
++:-------------:+:-------------:+:-------------------------:+:-------------:+
+| Region        | Sampled boats | Registered fishing boats  | Boats sampled |
++---------------+---------------+---------------------------+---------------+
+| Atauro Island | 89            | 348                       | 25.6%         |
++---------------+---------------+---------------------------+---------------+
+| North Coast   | 129           | 1463                      | 8.8%          |
++---------------+---------------+---------------------------+---------------+
+| South Coast   | 105           | 466                       | 22.5%         |
++---------------+---------------+---------------------------+---------------+
+| Total         | 323           | 2277                      | 14.2%         |
++---------------+---------------+---------------------------+---------------+
 
 Table 2: Vessels reporting catch and/or tracking data to PeskAAS. Information on the number of registered fishing boats was obtained from the Timor-Leste Ministry of Agriculture and Fisheries (2018).
 
-+-----------------+-------------------+---------------+---------------------+----------------------------+------------------------------+-------------------------------+
-| **Region**      | **Sampled boats** | **Boat type** | **Number of boats** | **Median boat length (m)** | **Boat material**            | **Motor type**                |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     |                            | **Fibreglass/Wood /Unknown** | **Inboard/Outboard /Unknown** |
-+=================+===================+===============+=====================+============================+==============================+===============================+
-| **Atauro**      | 89                | Motorboat     | 48 (54%)            | 8.0                        | 3 (6.3%) /                   | 2 (4.2%) /                    |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     |                            | 24 (50.0%) /                 | 46 (95.8%) /                  |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     |                            | 21 (43.7%)                   | 0 (0%)                        |
-+-----------------+-------------------+---------------+---------------------+----------------------------+------------------------------+-------------------------------+
-| \               | Paddle canoes     | 41 (46%)      | 5.0                 | 1 (2.4%) /                 | NA                           |                               |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     | 31 (75.6%) /               |                              |                               |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     | 9 (22.0%)                  |                              |                               |
-+-----------------+-------------------+---------------+---------------------+----------------------------+------------------------------+-------------------------------+
-| **North Coast** | 129               | Motorboat     | 103 (80%)           | 6.0                        | 34 (33.0%) /                 | 35 (34.0%) /                  |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     |                            | 55 (53.4%) /                 | 57 (55.3%) /                  |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     |                            | 14 (13.6%)                   | 11 (10.7%)                    |
-+-----------------+-------------------+---------------+---------------------+----------------------------+------------------------------+-------------------------------+
-| \               | Paddle canoes     | 26 (20%)      | 4.5                 | 0 (0%) /                   | NA                           |                               |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     | 21 (80.8%) /               |                              |                               |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     | 5 (19.2%)                  |                              |                               |
-+-----------------+-------------------+---------------+---------------------+----------------------------+------------------------------+-------------------------------+
-| **South Coast** | 105               | Motorboat     | 30 (29%)            | 5.0                        | 4 (13.3%) /                  | 12 (40.0%) /                  |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     |                            | 20 (66.7%) /                 | 14 (46.7%) /                  |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     |                            | 6 (20%)                      | 4 (13.3%)                     |
-+-----------------+-------------------+---------------+---------------------+----------------------------+------------------------------+-------------------------------+
-| \               | Paddle canoes     | 75 (71%)      | 4.0                 | 0 (0%) /                   | NA                           |                               |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     | 65 (86.7%) /               |                              |                               |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     | 10 (13.3%)                 |                              |                               |
-+-----------------+-------------------+---------------+---------------------+----------------------------+------------------------------+-------------------------------+
-| **Total**       | 323               | Motorboat     | 181 (56%)           | 6.5                        | 41 (22.3%) /                 | 49 (26.6%) /                  |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     |                            | 99 (53.8%) /                 | 117 (63.6%) /                 |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     |                            | 44 (23.9%)                   | 18 (9.8%)                     |
-+-----------------+-------------------+---------------+---------------------+----------------------------+------------------------------+-------------------------------+
-| \               | Paddle canoes     | 142 (44%)     | 4.0                 | 1 (0.7%) /                 | NA                           |                               |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     | 117 (82.4%) /              |                              |                               |
-|                 |                   |               |                     |                            |                              |                               |
-|                 |                   |               |                     | 24 (16.9%)                 |                              |                               |
-+-----------------+-------------------+---------------+---------------------+----------------------------+------------------------------+-------------------------------+
++-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
+| **Region**      | **Sampled boats** | **Boat type** | **Number of boats** | **Median boat length (m)** | **Boat material**        | **Motor type**            |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     |                            | Fibreglass/Wood /Unknown | Inboard/Outboard /Unknown |
++:===============:+:=================:+:=============:+:===================:+:==========================:+:========================:+:=========================:+
+| **Atauro**      | 89                | Motorboat     | 48 (54%)            | 8.0                        | 3 (6.3%) /               | 2 (4.2%) /                |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     |                            | 24 (50.0%) /             | 46 (95.8%) /              |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     |                            | 21 (43.7%)               | 0 (0%)                    |
++-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
+| \               | Paddle canoes     | 41 (46%)      | 5.0                 | 1 (2.4%) /                 | NA                       |                           |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     | 31 (75.6%) /               |                          |                           |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     | 9 (22.0%)                  |                          |                           |
++-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
+| **North Coast** | 129               | Motorboat     | 103 (80%)           | 6.0                        | 34 (33.0%) /             | 35 (34.0%) /              |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     |                            | 55 (53.4%) /             | 57 (55.3%) /              |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     |                            | 14 (13.6%)               | 11 (10.7%)                |
++-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
+| \               | Paddle canoes     | 26 (20%)      | 4.5                 | 0 (0%) /                   | NA                       |                           |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     | 21 (80.8%) /               |                          |                           |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     | 5 (19.2%)                  |                          |                           |
++-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
+| **South Coast** | 105               | Motorboat     | 30 (29%)            | 5.0                        | 4 (13.3%) /              | 12 (40.0%) /              |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     |                            | 20 (66.7%) /             | 14 (46.7%) /              |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     |                            | 6 (20%)                  | 4 (13.3%)                 |
++-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
+| \               | Paddle canoes     | 75 (71%)      | 4.0                 | 0 (0%) /                   | NA                       |                           |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     | 65 (86.7%) /               |                          |                           |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     | 10 (13.3%)                 |                          |                           |
++-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
+| **Total**       | 323               | Motorboat     | 181 (56%)           | 6.5                        | 41 (22.3%) /             | 49 (26.6%) /              |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     |                            | 99 (53.8%) /             | 117 (63.6%) /             |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     |                            | 44 (23.9%)               | 18 (9.8%)                 |
++-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
+| \               | Paddle canoes     | 142 (44%)     | 4.0                 | 1 (0.7%) /                 | NA                       |                           |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     | 117 (82.4%) /              |                          |                           |
+|                 |                   |               |                     |                            |                          |                           |
+|                 |                   |               |                     | 24 (16.9%)                 |                          |                           |
++-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
 
 ## **Fishing gear**
 
-Gill nets are the most used gear on Atauro island (fig. <a href="#fig:IRIGearGroups">0.5</a>) as well as the gear that catches the highest percentage of the catch in weight (64% and 88%, respectively) and numbers (71% and 96%, respectively). Spear guns, seine nets and hand lines also play a part in the fishery of Atauro island, collectively yielding 32% of the total weight of the catch and 28% of the total catch in numbers. The fishery of the north coast is also dominated by gill nets, catching 88% of the total catch in weight and 96% of the total catch in numbers. Hand lines are used somewhat frequently, but only results in a small part of the yield. On the south coast long lines are the most frequently used gear, catching 73% of the total catch in weight and 51% of the total catch in numbers. In addition, 14% and 10% of the total catch in weight and 18% and 27% of the total catch in numbers are caught by hand lines and gill nets, respectively. These differences in characteristics of the fishing gear used in the different areas are likely also influenced by social, economical and geographical factors, as well as climate and cultural factors. First of all, a particular fishing gear has to be available and preferably also commonly used in the area. If it is not a traditional fishing gear, it will be difficult to get access to the gear or to find someone who has experience fishing with it. For instance, Atauro island and the north coast have approximately the same marine habitat, with fringing reefs along the coast line followed by a steep slope, descending to several kilometres depth. However, the fishers on Atauro island catch less pelagic fish, as the gear needed to fish on the open ocean is uncommon on the island [(Mills et al., 2013)](https://paperpile.com/c/Yw05cY/DYZP). It also needs to be financially feasible for a fishing family to pay for the entry costs and the maintenance of certain fishing gears. The gear choice is also limited by the choice of fishing boats and the climate. The south coast experiences rougher weather conditions, and they will therefore not be able to go out very far on paddle-driven canoes or use heavy fishing gear. If, after having met all these conditions, a fisher is still left with options, the choice in fishing gear will likely be made according to desired targets, tradition, as well as revenue.
+Gill nets are the most used gear on the North Coast, including Atauro island (fig. \@ref(fig:IRIGearGroups)) reaching the highest percentage of the catch in weight (92% and 56%, respectively) and numbers (96% and \~76%, respectively). Spear guns, seine nets and hand lines also play a part in the fishery of Atauro island, collectively yielding around 40% of the total weight of the catch and 20% of the total catch in numbers. Hand lines are used somewhat frequently (12%), but only results in a small part of the yield. On the south coast long lines are the most frequently used gear, catching 22% of the total catch in weight and 26% of the total catch in numbers. In addition, 2% and 73% of the total catch in weight and 5% and 66% of the total catch in numbers are caught by hand lines and gill nets, respectively. These differences in characteristics of the fishing gear used in the different areas are likely also influenced by social, economical and geographical factors, as well as climate and cultural factors. First of all, a particular fishing gear has to be available and preferably also commonly used in the area. If it is not a traditional fishing gear, it will be difficult to get access to the gear or to find someone who has experience fishing with it. For instance, Atauro island and the north coast have approximately the same marine habitat, with fringing reefs along the coast line followed by a steep slope, descending to several kilometres depth. However, the fishers on Atauro island catch less pelagic fish, as the gear needed to fish on the open ocean is uncommon on the island [(Mills et al., 2013)](https://paperpile.com/c/Yw05cY/DYZP). It also needs to be financially feasible for a fishing family to pay for the entry costs and the maintenance of certain fishing gears. The gear choice is also limited by the choice of fishing boats and the climate. The south coast experiences rougher weather conditions, and they will therefore not be able to go out very far on paddle-driven canoes or use heavy fishing gear. If, after having met all these conditions, a fisher is still left with options, the choice in fishing gear will likely be made according to desired targets, tradition, as well as revenue.
 
+(ref:IRIGearGroups) **Gear composition of the three regions using the Index of Relative Importance (IRI).** Gear composition using the Index of Relative Importance (IRI) of the landings of Atauro island, north coast, and south coast from April 2018 to December 2021. The IRI considers the weight and the number of fish caught per gear type, and the frequency of occurrence (FRQ) of a gear type.
 
-
-![Figure 0.5: **Gear composition of the three regions using the Index of Relative Importance (IRI).** Gear composition using the Index of Relative Importance (IRI) of the landings of Atauro island, north coast, and south coast from April 2018 to December 2021. The IRI considers the weight and the number of fish caught per gear type, and the frequency of occurrence (FRQ) of a gear type.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/IRIGearGroups-1.png)
+![(\#fig:IRIGearGroups)(ref:IRIGearGroups)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIGearGroups-1.pdf) 
 
 # **Effort and landings**
 
 ## **Geospatial fishing effort**
 
-Most of the fishing trips seem to be concentrated inshore around the coast and around the landing sites (fig. <a href="#fig:spatialeffort">0.6</a>). This is probably because most marine productivity is in the surf zone, and thus where most fish can be found [(Alongi et al., 2009)](https://paperpile.com/c/Yw05cY/BwoM). There is some activity recorded between Atauro island and the mainland as well as to the Indonesian island Wetar, situated north of Atauro. These are most likely taxiing and trading trips, and not for fishing. The same is probably the case for the activity seen in the west part of the north coast, where they are headed to Indonesia or trade with Indonesian fishers at sea.
+Most of the fishing trips seem to be concentrated inshore around the coast and around the landing sites (fig. \@ref(fig:spatialeffort)). This is probably because most marine productivity is in the surf zone, and thus where most fish can be found [(Alongi et al., 2009)](https://paperpile.com/c/Yw05cY/BwoM). There is some activity recorded between Atauro island and the mainland as well as to the Indonesian island Wetar, situated north of Atauro. These are most likely taxiing and trading trips, and not for fishing. The same is probably the case for the activity seen in the west part of the north coast, where they are headed to Indonesia or trade with Indonesian fishers at sea.
 
+(ref:spatialeffort) **Heat map of Timor-Leste visualising the geospatial fishing effort.** A heat map of Timor-Leste visualising the geospatial fishing effort of 80,163 trips using the tracking information sampled by the PDS trackers during the period of February 2018 to July 2021. High effort is represented by red dots on the map, with orange to yellow to white representing a decreasing effort. Source: Pelagic Data Systems (2021).
 
+\begin{figure}
 
-![Figure 0.6: **Heat map of Timor-Leste visualising the geospatial fishing effort.** A heat map of Timor-Leste visualising the geospatial fishing effort of 80,163 trips using the tracking information sampled by the PDS trackers during the period of February 2018 to July 2021. High effort is represented by red dots on the map, with orange to yellow to white representing a decreasing effort. Source: Pelagic Data Systems (2021).](timor_maps/spatial_effort.png)
+\includegraphics[width=12.56in]{timor_maps/spatial_effort} \hfill{}
+
+\caption{(ref:spatialeffort)}(\#fig:spatialeffort)
+\end{figure}
 
 ## **Number of trips per week**
 
@@ -250,88 +269,84 @@ There are considerably more fishing trips taken per week on the north coast than
 
 To calculate the trip effort the duration of a trip (hours) was multiplied with the number of fishermen (including women and children), resulting in an effort unit of fisher-hours.
 
-The trip effort (fisher-hours) of the three regions appears to be quite similar (fig. <a href="#fig:TripEffort">0.7</a>a). The trip effort mostly ranges between two to ten fisher-hours, with some peaks reaching up to 28 fisher-hours. There seems to be no change in trip effort over time for Atauro island and the north coast, while the south coast shows a slight increase (fig. <a href="#fig:TripEffort">0.7</a>b).
+The trip effort (fisher-hours) of the three regions appears to be quite similar (fig. \@ref(fig:TripEffort)a). The trip effort mostly ranges between five to ten fisher-hours, with a peaks reaching up to 30 fisher-hours in the South Coast. There seems to be no clear trends in trip effort over time among the regions (fig. \@ref(fig:TripEffort)b).
 
+(ref:TripEffort) **Mean trip effort.** The mean effort (fishermen \* hours) of a fishing trip in Atauro island (grey), north coast (red) and south coast (light blue) for the period of May 2018 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y-axis has free scaling. The colored shaded areas represent the 95% confidence interval. The grey shaded area tdefine the pandemic period starting from the COVID-19 lockdown on 28 March 2020.
 
-
-![Figure 0.7: **Mean trip effort.** The mean effort (fishermen \* hours) of a fishing trip in Atauro island (grey), north coast (red) and south coast (light blue) for the period of September 2016 to March 2021, with the regions plotted (a) together in one plot and (b) separately, where the y-axis has free scaling. The error bars represent the standard error. The dashed line shows the linear regression with 95% confidence intervals. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/TripEffort-1.png)
+![(\#fig:TripEffort)(ref:TripEffort)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/TripEffort-1.pdf) 
 
 ## **Catch per unit effort**
 
 For this report, a standardised catch per unit effort (CPUE) was used, where the effort was standardised to one fisher and one trip hour (fisher-hour). The catch was calculated in kilograms. After 2019 the weight calculation was done on species level, while before 2019 it was more general.  
 
-The CPUE (kg) of Atauro island and the north coast are quite similar, whereas the north coast has more high peaks (fig. <a href="#fig:CatchEffort">0.8</a>). The south coast appears to generally have a lower CPUE (kg) than Atauro island and the north coast. The CPUE (kg) of Atauro island seems to increase over time. The north and south coast show no apparent change of CPUE over time.
+The CPUE (kg) of Atauro island and the north coast are quite similar, whereas the north coast has more high peaks (fig. \@ref(fig:CatchEffort)). The south coast appears to generally have a lower CPUE (kg) than Atauro island and the north coast. The CPUE (kg) of Atauro island seems to increase over time, while the north and south coasts show no apparent change of CPUE over time.
 
-\
+(ref:CatchEffort) **Mean CPUE.** The mean catch (kg) per unit effort (fisher-hour) in Atauro island (grey), north coast (red) and south coast (grey) for the period of April 2018 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
 
-
-
-![Figure 0.8: **Mean CPUE.** The mean catch (kg) per unit effort (fisher-hour) in Atauro island (grey), north coast (red) and south coast (grey) for the period of April 2018 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/CatchEffort-1.png)
+![(\#fig:CatchEffort)(ref:CatchEffort)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/CatchEffort-1.pdf) 
 
 ## **Catch composition**
 
-A total of at least 53 identified different species were caught, excluding the species classified under "unknown" and "other". To facilitate the data handling and to keep the results comprehensible, the species were divided into 10 functional groups: small pelagics, large pelagics, small demersal, large demersal, shark and rays, crustaceans, shrimp, cephalopods, molluscs and unknown (See Appendix B for a detailed list of the species classification).\
+A total of at least 53 identified different species were caught, excluding the species classified under "unknown" and "other". To facilitate the data handling and to keep the results comprehensible, the species were divided into 10 functional groups: small pelagics, large pelagics, small demersals, large demersal, sharks and rays, crustaceans, shrimps, cephalopods, molluscs and unknown (See Appendix B for a detailed list of the species classification).\
 \
-Atauro island shows the most diverse catch composition of the three sampling regions (fig. <a href="#fig:IRIFishGroups">0.9</a>). It is dominated by small pelagics in weight and numbers, while small demersal are the most frequently caught. The catch composition of the north and the south coast are both dominated by small pelagic species. In the south coast the large pelagics are also caught relatively frequently (33%) and contribute to 31% of the weight of the catch (see Appendix F for the species composition of the catch within the functional groups).
+Atauro island shows the most diverse catch composition of the three sampling regions (fig. \@ref(fig:IRIFishGroups)). It is dominated by small pelagics in weight and numbers, while small demersals are the most frequently caught. The catch composition of the north and the south coast are both dominated by small pelagic species. In the north and south coast the large pelagics are also caught relatively frequently and contribute to 13% and 9% of the weight of the catch respectively (see Appendix F for the species composition of the catch within the functional groups).
 
-Looking at the catch composition of the four most used gear types, it shows that gill nets catch primarily small pelagic species, both in weight and number (fig. <a href="#fig:IRIFishGear">0.10</a>). The weight of the catch of the hand line is dominated by large pelagics and large demersal, whereas the small pelagics dominate the catch in numbers. When long lines are used pelagic fish are primarily caught, of which large fish account for most of the weight of the catch, and small fish account for most of the catch in numbers. The catch of spear guns consists largely of demersal fish, with again the large fish accounting for most of the weight of the catch, and small fish accounting for most of the catch in numbers. Cephalopods are caught in one fifth of the fishing trips where spear guns are used.
+Looking at the catch composition of the four most used gear types, it shows that gill nets catch primarily small pelagic species, both in weight and number (fig. \@ref(fig:IRIFishGear)). The weight of the catch of the hand line is dominated by large pelagics and large demersals, whereas the small pelagics dominate the catch in numbers. When long lines are used pelagic fish are primarily caught, of which large fish account for most of the weight of the catch, and small fish account for most of the catch in numbers. The catch of spear guns consists largely of demersal fish, with again the large fish accounting for most of the weight of the catch, and small fish accounting for most of the catch in numbers. Cephalopods are caught in almost one fifth of the fishing trips where spear guns are used.
 
 The catch composition of each area is greatly influenced by the choice in gear type. The high frequency of occurrence of demersal fish in the catch of Atauro island reflects the scarcity of pelagic fishing gear on the island, as well as the use of spear guns. Both the south coast and Atauro island catch larger-sized fish than the north coast, which is likely due to their more common use of long lines, hand lines and spear guns.\
-\
-
 \
 
 ### **Catch composition by region**
 
 This section presents information on the composition of fisheries catches across all gear types in each of the three main regions.
 
+(ref:IRIFishGroups) **Catch composition on the three regions using the Index of Relative Importance (IRI).** Catch composition using the Index of Relative Importance (IRI) of the landings of Atauro island, north coast, and south coast for the period of April 2018 to December 2021. The IRI considers the weight, the number, and the frequency of occurrence (FRQ) of a functional group.
 
-
-![Figure 0.9: **Catch composition on the three regions using the Index of Relative Importance (IRI).** Catch composition using the Index of Relative Importance (IRI) of the landings of Atauro island, north coast, and south coast for the period of April 2018 to December 2021. The IRI considers the weight, the number, and the frequency of occurrence (FRQ) of a functional group.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/IRIFishGroups-1.png)
+![(\#fig:IRIFishGroups)(ref:IRIFishGroups)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGroups-1.pdf) 
 
 ### **Catch composition by gear type**
 
 This section presents information on the composition of catches according to each gear type.
 
+(ref:IRIFishGear) **Catch composition of the four main gear types using the Index of Relative Importance (IRI)** Catch composition using the Index of Relative Importance (IRI) of the landings of gill nets, hand lines, long lines, and spear guns for the period of April 2018 to December 2021. The IRI considers the weight, the number, and the frequency of occurrence (FRQ) of a functional group.
 
-
-![Figure 0.10: **Catch composition of the four main gear types using the Index of Relative Importance (IRI)** Catch composition using the Index of Relative Importance (IRI) of the landings of gill nets, hand lines, long lines, and spear guns for the period of April 2018 to December 2021. The IRI considers the weight, the number, and the frequency of occurrence (FRQ) of a functional group.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/IRIFishGear-1.png)
+![(\#fig:IRIFishGear)(ref:IRIFishGear)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGear-1.pdf) 
 
 ### **Length composition of functional groups**
 
-The small pelagics and the cephalopods caught on Atauro island appear to be marginally bigger than on the north and south coast, whereas the large demersal caught on the south coast seem slightly bigger than on Atauro island and the north coast (fig. <a href="#fig:LengthArea">0.11</a>).
+The small pelagics and demersals, and the cephalopods caught on Atauro island appear to be marginally bigger than on the north and south coast, whereas the large demersal caught on the south coast seem slightly bigger than on Atauro island and the north coast (fig. \@ref(fig:LengthArea)).
 
+(ref:LengthArea) **Length composition of the functional groups.** Violin plots of the length (cm) of the catch for every functional group for Atauro island (grey), north coast (red) and south coast (light blue). The y-axis has free scaling for every functional group. The dot represents the median and the variance bars the first and third quartile.
 
-
-![Figure 0.11: **Length composition of the functional groups.** Violin plots of the length (cm) of the catch for every functional group for Atauro island (grey), north coast (red) and south coast (light blue). The y-axis has free scaling for every functional group. The dot represents the median and the variance bars the first and third quartile.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/LengthArea-1.png)
+![(\#fig:LengthArea)(ref:LengthArea)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthArea-1.pdf) 
 
 ## **Total monthly landings**
 
 The total monthly landings was calculated using the mean monthly CPUE (in metric tons), the median monthly trip effort and the number of trips taken per month.
 
-The estimated total monthly landings (tons) of the north coast are generally higher and with more peaks than on Atauro island and the south coast (fig. <a href="#fig:MonthlyCatch"><strong>??</strong></a>). This difference between the areas is largely driven by the difference in trips taken per week. The high peaks observed at the north coast are also seen in the CPUE, and could be actual windfall catches of sardines, which are the primary species of small pelagics caught on the north coast. These fish often migrate in large schools, which can result in big hauls if one comes across such a school [(Hunnam et al., 2021)](https://paperpile.com/c/Yw05cY/sLRG). This hyporeport is strengthened by the fact that these observed high catches occur during the wet season, when sardines are mostly present [(Hunnam et al., 2021)](https://paperpile.com/c/Yw05cY/sLRG). The use of FADs could also play a role in the fluctuations present, as fishing near one increases the chances of encountering big schools of fish [(Tilley et al., 2019)](https://paperpile.com/c/Yw05cY/APpV).
+The estimated total monthly landings (tons) of the north coast are generally higher and with more peaks than on Atauro island and the south coast (fig. \@ref(fig:MonthlyCatch)). This difference between the areas is largely driven by the difference in trips taken per week. The high peaks observed at the north coast are also seen in the CPUE, and could be actual windfall catches of sardines, which are the primary species of small pelagics caught on the north coast. These fish often migrate in large schools, which can result in big hauls if one comes across such a school [(Hunnam et al., 2021)](https://paperpile.com/c/Yw05cY/sLRG). This hyporeport is strengthened by the fact that these observed high catches occur during the wet season, when sardines are mostly present [(Hunnam et al., 2021)](https://paperpile.com/c/Yw05cY/sLRG). The use of FADs could also play a role in the fluctuations present, as fishing near one increases the chances of encountering big schools of fish [(Tilley et al., 2019)](https://paperpile.com/c/Yw05cY/APpV).
 
 The landings seem to increase over time on the south coast, while remaining constant on Atauro island and north coast. The increase in landings observed on the south coast is likely due to the increase in trip effort. However, the first years of the south coast were poorly sampled (only two stations were sampled on the entire south coast up until May 2019), which could explain this trend. 
 
 \
 
-
+(ref:MonthlyCatch) **Estimate of total monthly catch (tons).** Estimate of the total monthly catch (tons) for Atauro island (grey), north coast (red) and south coast (light blue), during the period of February 2018 to March 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The dashed line shows the linear regression with 95% confidence intervals. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
 
 ## **Seasonality**
 
-A pattern of seasonality is observed for the total number of trips taken per week as well as for the estimated total monthly landings in all three regions, with the strongest trend seen in the south coast (fig. <a href="#fig:WeekTrips">0.12</a>; fig. <a href="#fig:WeekCatch">0.13</a>). The total number of trips per week decreased around April/May and increased again around September/October.
+A pattern of seasonality is observed for the total number of trips taken per week as well as for the total monthly landings in all three regions, with the strongest trend seen in the south coast (fig. \@ref(fig:WeekTrips); fig. \@ref(fig:WeekCatch)). The total number of trips per week decreased at the beginning of the year and increased during August/September reaching the peaks around October and December.
 
 This pattern of seasonality is likely explained by the weather conditions, as well as due to the diverse livelihood of most Timorese households. The fishers on the south coast make less trips when the seas are at their roughest, from April to September [(Tomascik et al., 1997)](https://paperpile.com/c/Yw05cY/45us). The seasonality in fishing activity seen on Atauro island are in line with the findings of [(Mills et al., 2017)](https://paperpile.com/c/Yw05cY/SKw9X), who found that there was reduced fishing activity in August and the months around August due to the rough seas caused by the south-easterly monsoon.
 
 Fishing is for many households however not their only or even primary source of income [(Mills et al., 2013)](https://paperpile.com/c/Yw05cY/DYZP). Instead, the vast majority stated that crops and livestock were their main economic activity. It would therefore not be bold to assume that the seasonality of agricultural activities has an influence on the fishing activity. The harvesting of the two primary crops, maize and rice, happens from February to April and April to July [(FAO, 2021)](https://paperpile.com/c/Yw05cY/bxXs). The period with the highest food insecurity is in the months before the harvesting, which is also when we see the highest fishing activity on the mainland [(Gorton, 2018)](https://paperpile.com/c/Yw05cY/3tCT). This pattern is less prevalent on Atauro island, where there is a stronger fishing culture and half of the fishers consider it to be their main livelihood [(Mills et al., 2017)](https://paperpile.com/c/Yw05cY/SKw9X)).
 
+(ref:WeekTrips) **Seasonality of trips per week** Box plots of the estimated number of trips per week for every month (2018-2021) for Atauro island, north coast, and south coast. The y-axis has a free scale for each region. The dashed line shows a loess regression with 95% confidence intervals.
 
+![(\#fig:WeekTrips)(ref:WeekTrips)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekTrips-1.pdf) 
 
-![Figure 0.12: **Seasonality of trips per week** Box plots of the estimated number of trips per week for every month (2018-2021) for Atauro island, north coast, and south coast. The y-axis has a free scale for each region. The dashed line shows a loess regression with 95% confidence intervals.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/WeekTrips-1.png)
+(ref:WeekCatch) **Seasonality of total monthly catch (tons).** Box plots of the estimated total catch (tons) for every month (2018-2021) for Atauro island, north coast, and south coast. The y-axis has a free scale for each region. The dashed line shows the loess regression with 95% confidence intervals.
 
-
-
-![Figure 0.13: **Seasonality of total monthly catch (tons).** Box plots of the estimated total catch (tons) for every month (2018-2021) for Atauro island, north coast, and south coast. The y-axis has a free scale for each region. The dashed line shows the loess regression with 95% confidence intervals.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/WeekCatch-1.png)
+![(\#fig:WeekCatch)(ref:WeekCatch)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekCatch-1.pdf) 
 
 # Market
 
@@ -339,48 +354,49 @@ Fishing is for many households however not their only or even primary source of 
 
 When looking at the data, the use of the catch and the market value, it is important to keep in mind that the information is acquired before the selling has taken place. It is a prediction made by the fisher and does not necessarily align with reality. These assumptions are however made on prior knowledge and thus if a fisher sold less fish and for a low price for a longer period of time, the assumption will be made that the next catch will follow this pattern. The catch is usually sold on the road, on the water (e.g. to Indonesian fishers/traders), or to a trader, which then sells the fish on the market [(Población, 2013)](https://paperpile.com/c/Yw05cY/kST0). Selling the catch to traders is the safest option however less profitable than if sold directly to the consumer. Fishers will try to sell as much of their catch as they can and keep what is left.
 
-On average, 96.2% of the sampled catch on Atauro island is sold on the market, 3.4% is kept for own consumption and 0.4% is used for both (fig. <a href="#fig:Usage">5.1</a>). On the north coast, 56.5% goes to the market, 1.8% is used for own consumption and 41.7% is used for both. On the south coast 91.7% is sold on the market, 2.0% is kept for own consumption and 6.3% is used for both. An interesting difference between the regions is that at the north coast a large part of the catch is documented as being used for both own consumption as well as being sold. While this is likely also the case on Atauro island and the south coast, it is not being documented in the same manner. Why there is this difference in documenting between the regions is not clear. It could be that the fishers of the north coast are more realistic with the outcome of the selling, or that the fishers of Atauro island and the south coast have a better understanding of which fish will sell and which will not and therefore can be more precise in their answering. It could also be because of a difference in the nuance of the question asked by the enumerators. 
+On average, 85.5% of the sampled catch on Atauro island is sold on the market, 14.1% is kept for own consumption and 0.4% is used for both. On the north coast, 66.2% goes to the market, 18.4% is used for own consumption and 15.4% is used for both. On the south coast 80.4% is sold on the market, 10.7% is kept for own consumption and 8.87% is used for both. On the temporal scale the market selling showed a slight increase in all the regions, and especially in Atauro, whereas own consumption and both trends were quite stable in all the regions (fig. \@ref(fig:Usage)).
 
-Most of the fish being kept for own consumption are smaller sized fish and fish species, with some exceptions such as the Cobia (Rachycentron canadum) and the Moray eel (Gymnothorax spp.) (fig. <a href="#fig:UsageProp">5.2</a>; fig. <a href="#fig:LengthUsage">5.3</a>). Large-size fish and fish species are often easier to sell, as they look more appetising and are in demand by the restaurants and urban population (Venugopa & Shahidi, 1995). 
+An interesting difference between the regions is that at the north coast a large part of the catch is documented as being used for both own consumption as well as being sold. While this is likely also the case on Atauro island and the south coast, it is not being documented in the same manner. Why there is this difference in documenting between the regions is not clear. It could be that the fishers of the north coast are more realistic with the outcome of the selling, or that the fishers of Atauro island and the south coast have a better understanding of which fish will sell and which will not and therefore can be more precise in their answering. It could also be because of a difference in the nuance of the question asked by the enumerators. 
 
-\
+Most of the fish being kept for own consumption is smaller sized fish and fish species, with some exceptions such as the Cobia (Rachycentron canadum) and the Moray eel (Gymnothorax spp.) (fig. \@ref(fig:UsageProp); fig. \@ref(fig:LengthUsage)). Large-size fish and fish species are often easier to sell, as they look more appetising and are in demand by the restaurants and urban population (Venugopa & Shahidi, 1995). 
 
+(ref:Usage) **Destination of catch over time.** The mean weight (kg) per week of the sampled catch being sold on market, kept for own consumption, or both on Atauro island (grey), north coast (red), and south coast (light blue) in the period of September 2016 to March 2021. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020. The y-axis has free scaling.
 
-![Figure 5.1: **Destination of catch over time.** The mean weight (kg) per week of the sampled catch being sold on market, kept for own consumption, or both on Atauro island (grey), north coast (red), and south coast (light blue) in the period of September 2016 to March 2021. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020. The y-axis has free scaling.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/Usage-1.png)
+![(\#fig:Usage)(ref:Usage)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/Usage-1.pdf) 
 
+(ref:UsageProp) **Bar plot of the destination of the catch per species.** The y-axis shows individual species grouped by functional group and the x-axis shows the percentage of the catch in weight (kg) being sold on the market (brown), held for own consumption (light green), or used for both (grey).
 
+![(\#fig:UsageProp)(ref:UsageProp)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/UsageProp-1.pdf) 
 
-![Figure 5.2: **Bar plot of the destination of the catch per species.** The y-axis shows individual species grouped by functional group and the x-axis shows the percentage of the catch in weight (kg) being sold on the market (brown), held for own consumption (light green), or used for both (grey)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/UsageProp-1.png)
+(ref:LengthUsage) **Bar plot of the destination of the catch per length groups.** (a) Percentage of the catch and (b) weight (kg) of the catch being used to sell on market (brown), for own consumption (light green), or both (grey) versus the size (cm) of the fish caught. The catch is divided into 50 length groups. Entries without any information on the destination of the catch are shown in red.
 
-
-
-![Figure 5.3: **Bar plot of the destination of the catch per length groups.** (a) Percentage of the catch and (b) weight (kg) of the catch being used to sell on market (brown), for own consumption (light green), or both (grey) versus the size (cm) of the fish caught. The catch is divided into 50 length groups. Entries without any information on the destination of the catch are shown in red.\](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/LengthUsage-1.png)
+![(\#fig:LengthUsage)(ref:LengthUsage)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthUsage-1.pdf) 
 
 ## **Market value of catch**
 
 To analyse the market value of the catch, the dataset was subset to only include catches which destination was to be sold on the market. 
 
-\
-The catch in hand lines yields the highest price (USD) per kg of the different gear types, followed by long lines (fig. <a href="#fig:ValueGear">5.5</a>). Gill nets and spear guns generate the lowest price per kg.
+The catch in hand lines yields the highest price (USD) per kg of the different gear types, followed by long lines (fig. \@ref(fig:ValueGear)). Gill nets and spear guns generate the lowest price per kg.
 
-In the peskAAS dataset, the market value of the catch was given per fishing trip instead of per caught species. To be able to estimate the market value per functional group, the data was filtered to only include trips where the weight of the catch consisted of at least 95% of one functional group. The assumption was made that the 5% weight of the other species or functional group in the catch was negligible with respect to the market value of the entire catch of that fishing trip.
+In the peskAAS dataset, the market value of the catch was given per fishing trip instead of per caught species. To be able to estimate the market value per functional group, the data was filtered to only include trips characterized by a catch consisting of a single fish group (77.23% of total trips).
 
-This considering, the large pelagics and large demersal yield the highest price (USD) per kg Of the different functional groups (fig. <a href="#fig:ValueFish">5.6</a>). The cephalopods bring in the lowest price per kg, followed by the small pelagics and small demersal. As larger-sized fish look more appetising and are more in demand, it makes sense that they would sell for the highest price per kg. 
+This considering, the large pelagics and large demersal yield the highest price (USD) per kg of the different functional groups (fig. \@ref(fig:ValueFish)). The cephalopods and sharks bring in the lowest price per kg, followed by the small pelagics and small demersals. As larger-sized fish look more appetising and are more in demand, it makes sense that they would sell for the highest price per kg. A consistent positive trend in price per kg is evident in the North Coast, involving both the demersals and the large pelagics.
 
-\
-The selling price (in USD) per kg of the catch is highest in the south coast, followed by the north coast and lastly Atauro island (fig. <a href="#fig:MarketValue">5.4</a>). This could possibly be because the south coast is home to larger fish species. However, it is still somewhat counter-intuitive. The south coast has poor infrastructure and is located further from the places with high demand (such as Dili), and you would therefore expect the traders to pay less as they need to compensate for the costs made for transport facilities and preservation of the produce [(Población, 2013)](https://paperpile.com/c/Yw05cY/kST0). Atauro island selling for the lowest price per kg is also doubtful. According to [(Mills et al., 2017)](https://paperpile.com/c/Yw05cY/SKw9X), fish from Atauro island has a higher standing among the Dili-based middle class, as well as easy accessibility. Fishers from Atauro island also do not appear too worried about being able to sell their catch [(Mills et al., 2017)](https://paperpile.com/c/Yw05cY/SKw9X). One should anyhow be hesitant in making a comparison between the regions, as there have been differences in how the enumerators record the pricing between the areas and over time.
+Before Covid, the selling price per kg of catch was slight higher in the South Coast, followed by the North coast and lastly Atauro island (fig. \@ref(fig:MarketValue)). This could possibly be because the south coast is home to larger fish species. However, it is still somewhat counter-intuitive. The south coast has poor infrastructure and is located further from the places with high demand (such as Dili), and you would therefore expect the traders to pay less as they need to compensate for the costs made for transport facilities and preservation of the produce [(Población, 2013)](https://paperpile.com/c/Yw05cY/kST0). Atauro island selling for the lowest price per kg is also doubtful. According to [(Mills et al., 2017)](https://paperpile.com/c/Yw05cY/SKw9X), fish from Atauro island has a higher standing among the Dili-based middle class, as well as easy accessibility. Fishers from Atauro island also do not appear too worried about being able to sell their catch [(Mills et al., 2017)](https://paperpile.com/c/Yw05cY/SKw9X). One should anyhow be hesitant in making a comparison between the regions, as there have been differences in how the enumerators record the pricing between the areas and over time.
 
+After Covid, both the South and North coasts were characterized by a consistent increase in the price per kg of catch, but while in the North the trend kept increasing, the South Coast showed a quick drop in the average price.
 
+(ref:MarketValue) **Mean market value (USD) per kg of the catch.** Mean market value (USD) per kg of the catch for Atauro island (grey), north coast (red) and south coast (light blue), during the period of July 2019 to April 2021. The error bars represent the standard error. The dashed line shows the linear regression with 95% confidence intervals for each region. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
 
-![Figure 5.4: **Mean market value (USD) per kg of the catch.** Mean market value (USD) per kg of the catch for Atauro island (grey), north coast (red) and south coast (light blue), during the period of July 2019 to April 2021. The error bars represent the standard error. The dashed line shows the linear regression with 95% confidence intervals for each region. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/MarketValue-1.png)
+![(\#fig:MarketValue)(ref:MarketValue)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/MarketValue-1.pdf) 
 
+(ref:ValueGear) **Mean market value (USD) per kg of the catch of the most used gear types.** Mean market value (USD) per kg of the catch in gill nets, hand lines, long lines, and spear guns during the period of July 2019 to April 2021. The error bars represent the standard error. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020. The y-axis has free scaling for every gear type.
 
+![(\#fig:ValueGear)(ref:ValueGear)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueGear-1.pdf) 
 
-![Figure 5.5: **Mean market value (USD) per kg of the catch of the most used gear types.** Mean market value (USD) per kg of the catch in gill nets, hand lines, long lines, and spear guns during the period of July 2019 to April 2021. The error bars represent the standard error. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020. The y-axis has free scaling for every gear type.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/ValueGear-1.png)
+(ref:ValueFish) **Mean market value (USD) per kg of the catch of the most frequently caught functional groups** in Atauro Island (grey), north coast (red) and south coast (light blue), during the period of July 2019 to April 2021. The error bars represent the standard error. The y-axis has free scaling for every functional group. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.
 
-
-
-![Figure 5.6: **Mean market value (USD) per kg of the catch of the most frequently caught functional groups** in Atauro Island (grey), north coast (red) and south coast (light blue), during the period of July 2019 to April 2021. The error bars represent the standard error. The y-axis has free scaling for every functional group. The dotted red line signifies the start of the COVID-19 lockdown on 28 March 2020.](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-docx/ValueFish-1.png)
+![(\#fig:ValueFish)(ref:ValueFish)](/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueFish-1.pdf) 
 
 # **Covid Box**
 
