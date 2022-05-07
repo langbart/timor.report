@@ -39,7 +39,7 @@ knitr::opts_chunk$set(cache = FALSE)
 ```
 
 ```{r, include=FALSE}
-# libraries
+####### libraries #######
 library(magrittr)
 library(ggplot2)
 library(tidytext)
@@ -48,14 +48,14 @@ library(ggchicklet)
 library(cowplot)
 library(ggpubr)
 library(RColorBrewer)
+library(statebins)
 
 setwd("../..")
 pars <- timor.report::read_config()
-
-# load data
+# load data #
 report_data <- timor.report::report_data
 
-# Store useful plotting functions:
+####### Store useful plotting functions #######
 label_date <- function(x) {
   format(x, "%b") %>%
     stringr::str_replace("Jan", paste0("Jan\n", format(x, "%Y")))
@@ -72,76 +72,114 @@ paste_percent <- function(x) {
 area_colors <- c("#505050", "#d23f67", "#17A3BF")
 catch_use_palette <- rev(c("#9f8985", "#87bdbc", "#dbdbc9"))
 
-gear_cols <- rev(brewer.pal(length(levels(report_data$gear_type)),"Set3"))
+gear_cols <- rev(brewer.pal(length(levels(report_data$gear_type)), "Set3"))
 names(gear_cols) <- levels(report_data$gear_type)
 gear_colors <- scale_fill_manual(values = gear_cols)
 
-fish_cols <- rev(brewer.pal(length(levels(report_data$fish_group)),"Set3"))
+fish_cols <- brewer.pal(length(levels(report_data$fish_group)), "Set3")
 names(fish_cols) <- levels(report_data$fish_group)
 fish_colors <- scale_fill_manual(values = fish_cols)
 
-plot_bar_grouped <- function(data = NULL,
-                              filter_var = NULL,
-                            facet_var = NULL,
-                            fill_var = NULL,
-                            fill_title = NULL,
-                            fill_scale = NULL,
-                            legend_rows = 3){
-  
-  dummy_plot <- 
-    data %>%
-    ggplot(aes(obs_perc,value, fill = data[,fill_var][[1]])) +
-    geom_chicklet(alpha = 0.75, radius = grid::unit(4, "pt"))+
-    #scale_fill_viridis_d(begin = 0, end = 1)+
-    fill_scale +
-    labs(fill = fill_title)+
-    theme_minimal()+
-    theme(legend.position = "bottom",
-          legend.key.size = unit(0.7, 'cm'))+
-    guides(fill = guide_legend(nrow = legend_rows,
-                               label.theme = element_text(size = 11)))
-  
-  dummy_plot_legend <<-  
-    ggpubr::get_legend(dummy_plot) %>% 
-    ggpubr::as_ggplot()
-  
-  if (facet_var == "area"){
-    dat <- 
-      data %>% 
-      dplyr::filter(area == filter_var)
-    
-    y_label <- ifelse(unique(dat$area %in% "Atauro island"),
-                      "FRQ of occurrence", "")
-    
-  } else {
-    
-    dat <- 
-      data %>% 
-      dplyr::filter(gear_type %in% filter_var) 
-    
-    y_label <- ifelse(unique(dat$gear_type %in% c("gill net", "hand line")),
-                      "FRQ of occurrence", "")
-  }
-  
-  main_plot <- 
-    ggplot(dat, aes(obs_perc,value, fill = dat[,fill_var][[1]])) +
-    theme_minimal(12.5)+
-    geom_chicklet(alpha = 0.75, radius = grid::unit(4, "pt"))+
-    geom_hline(yintercept = 0, size = 0.2, color = "grey30")+
-    coord_flip()+
-    #scale_fill_viridis_d(begin = 0, end = 1)+
-    fill_scale +
-    scale_y_continuous(labels = absolute_percent, n.breaks = 7)+
-    scale_x_discrete(labels = paste_percent)
-  
-  main_plot +
-    labs(x = y_label,
-         y = "N. individuals                 Weight",
-         title = filter_var)+
-    theme(legend.position = "none",
-          plot.title = element_text(hjust = 0.5))
-}
+####### define IRI plot function #######
 
+plot_iri <- function(data = NULL,
+                     filter_var = NULL,
+                     facet_var = NULL,
+                     fill_var = NULL,
+                     fill_title = NULL,
+                     fill_scale = NULL,
+                     legend_rows = 3) {
+  dummy_plot <-
+    data %>%
+    ggplot(aes(obs_perc, weight_perc, fill = data[, fill_var][[1]])) +
+    geom_chicklet(alpha = 0.75, radius = grid::unit(4, "pt")) +
+    # scale_fill_viridis_d(begin = 0, end = 1)+
+    fill_scale +
+    labs(fill = fill_title) +
+    theme_minimal() +
+    theme(
+      legend.position = "bottom",
+      legend.key.size = unit(0.7, "cm")
+    ) +
+    guides(fill = guide_legend(
+      nrow = legend_rows,
+      label.theme = element_text(size = 11)
+    ))
+
+  dummy_plot_legend <<-
+    ggpubr::get_legend(dummy_plot) %>%
+    ggpubr::as_ggplot()
+
+  if (facet_var == "area") {
+    dat <-
+      data %>%
+      dplyr::filter(area == filter_var)
+
+    y_label <- ifelse(unique(dat$area %in% "Atauro island"),
+      "FRQ of occurrence", ""
+    )
+  } else {
+    dat <-
+      data %>%
+      dplyr::filter(gear_type %in% filter_var)
+
+    y_label <- ifelse(unique(dat$gear_type %in% c("gill net", "hand line")),
+      "FRQ of occurrence", ""
+    )
+  }
+
+  dat <-
+    dat %>%
+    dplyr::mutate(type = forcats::fct_reorder(dat[[fill_var]], iri, .desc = T)) %>%
+    dplyr::arrange(obs_perc) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+      xmax = weight_perc,
+      xmin = -individuals_perc,
+      ymax = cumsum(obs_perc),
+      ymin = dplyr::lag(ymax, default = 0),
+      ybreaks = (ymin + ymax) / 2
+    )
+
+  n_breaks <- length(unique(dat$type))
+
+  main_plot <-
+    dat %>%
+    ggplot(aes(alpha = 0.75)) +
+    theme_minimal(12.5) +
+    statebins:::geom_rrect(aes(
+      xmin = xmin,
+      xmax = xmax,
+      ymin = ymin,
+      ymax = ymax,
+      fill = dat[, fill_var][[1]]
+    ),
+    colour = "transparent"
+    ) +
+    fill_scale +
+    geom_vline(xintercept = 0, linetype = 2, size = 0.2, color = "grey30") +
+    scale_y_continuous(
+      breaks = dat$ybreaks[1:n_breaks],
+      labels = paste_percent(dat$obs_perc[1:n_breaks]),
+      minor_breaks = dat$ymax,
+      expand = c(0, 0)
+    ) +
+    scale_x_continuous(
+      labels = absolute_percent,
+      expand = c(0, 0)
+    )
+
+  main_plot +
+    labs(
+      y = y_label,
+      x = "N. individuals            Weight",
+      title = filter_var
+    ) +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(hjust = 0.5)
+    )
+}
 ```
 
 **Authors**
@@ -228,7 +266,6 @@ For the purpose of this study, the coastal municipalities were grouped into thre
 ```{r timormap, echo=FALSE, message=FALSE, warning=FALSE,fig.align='left', fig.cap='(ref:timormap)'}
 
 knitr::include_graphics("timor_maps/timor_map.png")
-
 ```
 
 (ref:timorclimate) **Seasonal rainfall and sea surface temperature in Timor-Leste.** Seasonal rainfall and sea surface temperature in Timor-Leste, measured in Dili. Source: Timor-Leste National Directorate of Meteorology and Geophysics et al. (2015).
@@ -338,18 +375,20 @@ Gill nets are the most used gear on the North Coast, including Atauro island (fi
 
 ```{r IRIGearGroups, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=9, fig.cap='(ref:IRIGearGroups)'}
 # create base dataset for plotting
-plot_dat <- 
+plot_dat <-
   report_data %>%
-  dplyr::group_by(trip_id, fish_group) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   catch_taxon = dplyr::first(catch_taxon),
-                   gear_type = dplyr::first(gear_type),
-                   individuals = sum(individuals, na.rm = T),
-                   weight = sum(weight, na.rm = T)) %>% 
+  dplyr::group_by(trip_id, fish_group) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    catch_taxon = dplyr::first(catch_taxon),
+    gear_type = dplyr::first(gear_type),
+    individuals = sum(individuals, na.rm = T),
+    weight = sum(weight, na.rm = T)
+  ) %>%
   dplyr::group_by(area, gear_type) %>%
   dplyr::summarise(
-    weight = sum(weight,na.rm = T),
-    individuals = sum(individuals,na.rm = T),
+    weight = sum(weight, na.rm = T),
+    individuals = sum(individuals, na.rm = T),
     obs = dplyr::n()
   ) %>%
   dplyr::group_by(area) %>%
@@ -363,28 +402,29 @@ plot_dat <-
     area = area,
     gear_type = as.factor(gear_type),
     weight_perc = weight / weight_tot * 100,
-    individuals_perc = (individuals / individuals_tot * 100)*-1,
-    obs_perc = as.factor(round(obs / obs_tot * 100, 0))
-  ) %>%
-  tidyr::pivot_longer(-c(area, gear_type, obs_perc)) %>%
-  dplyr::ungroup() 
+    individuals_perc = (individuals / individuals_tot * 100),
+    obs_perc = round(obs / obs_tot * 100, 1),
+    iri = (weight_perc + individuals_perc) * obs_perc
+  )
 
-all_plots <- purrr::map(unique(plot_dat$area), ~ 
-                          plot_bar_grouped(data = plot_dat,
-                                           filter_var = .x,
-                                           fill_var = "gear_type",
-                                           fill_title = "Gear type",
-                                           facet_var = "area",
-                                           fill_scale = gear_colors,
-                                           legend_rows = 3))
+all_plots <- purrr::map(unique(plot_dat$area), ~
+plot_iri(
+  data = plot_dat,
+  filter_var = .x,
+  fill_var = "gear_type",
+  fill_title = "Gear type",
+  facet_var = "area",
+  fill_scale = gear_colors,
+  legend_rows = 3
+))
 
 main_plot <- cowplot::plot_grid(plotlist = all_plots, ncol = 3, align = "hv")
 
 cowplot::plot_grid(main_plot,
-                   dummy_plot_legend,
-                   ncol = 1, nrow=2,
-                   rel_heights = c(3, 0.75))
-
+  dummy_plot_legend,
+  ncol = 1, nrow = 2,
+  rel_heights = c(3, 0.75)
+)
 ```
 
 # **Effort and landings**
@@ -421,85 +461,109 @@ The trip effort (fisher-hours) of the three regions appears to be quite similar 
 
 ```{r TripEffort, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7, fig.width=6.5, fig.cap='(ref:TripEffort)'}
 
-p1 <- 
+p1 <-
   report_data %>%
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
-                effort = n_fishers * landing_survey_trip_duration) %>% 
-  dplyr::group_by(area, month_period) %>% 
-  dplyr::summarise(mean = mean(effort, na.rm =TRUE),
-                   sd = sd(effort,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal(13)+
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    effort = n_fishers * landing_survey_trip_duration
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean = mean(effort, na.rm = TRUE),
+    sd = sd(effort, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal(13) +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.4)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA)) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2018-01-01"), NA)) +
-  theme(legend.position = "top")+
-  labs(x = "",
-       y = "Fishermen x trip hours",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.4) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA)
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2018-01-01"), NA)
+  ) +
+  theme(legend.position = "top") +
+  labs(
+    x = "",
+    y = "Fishermen x trip hours",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
 
-p2 <- 
+p2 <-
   report_data %>%
-  dplyr::filter(n_fishers > 0 & individuals>0) %>% 
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
-                effort = n_fishers * landing_survey_trip_duration) %>% 
-  dplyr::group_by(area, month_period) %>% 
-  dplyr::summarise(mean = mean(effort, na.rm =TRUE),
-                   sd = sd(effort,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal(13)+
+  dplyr::filter(n_fishers > 0 & individuals > 0) %>%
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    effort = n_fishers * landing_survey_trip_duration
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean = mean(effort, na.rm = TRUE),
+    sd = sd(effort, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal(13) +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.4)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA)) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2018-01-01"), NA)) +
-  facet_grid(area~.,scales = "free")+
-  theme(legend.position = "none",
-        strip.background = element_blank(),
-        strip.text = element_blank())+
-  labs(x = "Date",
-       y = "Fishermen x trip hours",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.4) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA)
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2018-01-01"), NA)
+  ) +
+  facet_grid(area ~ ., scales = "free") +
+  theme(
+    legend.position = "none",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
+  labs(
+    x = "Date",
+    y = "Fishermen x trip hours",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
 
-cowplot::plot_grid(p1,p2,
-                   ncol=1,
-                   rel_heights = c(1,0.9),
-                   labels = "auto")
-
+cowplot::plot_grid(p1, p2,
+  ncol = 1,
+  rel_heights = c(1, 0.9),
+  labels = "auto"
+)
 ```
 
 ## **Catch per unit effort**
@@ -512,89 +576,116 @@ The CPUE (kg) of Atauro island and the north coast are quite similar, whereas th
 
 ```{r CatchEffort, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7, fig.width=6.5, fig.cap='(ref:CatchEffort)'}
 
-p1 <- 
+p1 <-
   report_data %>%
-  dplyr::filter(n_fishers > 0 & individuals>0) %>% 
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
-                weight = weight/1000,
-                catch_effort = (weight / n_fishers) / landing_survey_trip_duration) %>% 
-  dplyr::group_by(area, month_period) %>% 
-  dplyr::summarise(mean = mean(catch_effort, na.rm =TRUE),
-                   sd = sd(catch_effort,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal(13)+
+  dplyr::filter(n_fishers > 0 & individuals > 0) %>%
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    weight = weight / 1000,
+    catch_effort = (weight / n_fishers) / landing_survey_trip_duration
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean = mean(catch_effort, na.rm = TRUE),
+    sd = sd(catch_effort, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal(13) +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.4)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA)) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2018-01-01"), NA)) +
-  theme(legend.position = "top",
-        strip.background = element_blank(),
-        strip.text = element_blank())+
-  labs(x = "",
-       y = "Weight (Kg) / fisher-hour",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.4) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA)
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2018-01-01"), NA)
+  ) +
+  theme(
+    legend.position = "top",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
+  labs(
+    x = "",
+    y = "Weight (Kg) / fisher-hour",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
 
-p2 <- 
+p2 <-
   report_data %>%
-  dplyr::filter(n_fishers > 0 & individuals>0) %>% 
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
-                weight = weight/1000,
-                catch_effort = (weight / n_fishers) / landing_survey_trip_duration) %>% 
-  dplyr::group_by(area, month_period) %>% 
-  dplyr::summarise(mean = mean(catch_effort, na.rm =TRUE),
-                   sd = sd(catch_effort,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal(13)+
+  dplyr::filter(n_fishers > 0 & individuals > 0) %>%
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    weight = weight / 1000,
+    catch_effort = (weight / n_fishers) / landing_survey_trip_duration
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean = mean(catch_effort, na.rm = TRUE),
+    sd = sd(catch_effort, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal(13) +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.4)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA)) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2018-01-01"), NA)) +
-  facet_grid(area~.,scales = "free")+
-  theme(legend.position = "",
-        strip.background = element_blank(),
-        strip.text = element_blank())+
-  labs(x = "Date",
-       y = "Weight (Kg) / fisher-hour",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.4) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA)
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2018-01-01"), NA)
+  ) +
+  facet_grid(area ~ ., scales = "free") +
+  theme(
+    legend.position = "",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
+  labs(
+    x = "Date",
+    y = "Weight (Kg) / fisher-hour",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
 
-cowplot::plot_grid(p1,p2,
-                   ncol=1,
-                   rel_heights = c(1,0.9),
-                   labels = "auto")
+cowplot::plot_grid(p1, p2,
+  ncol = 1,
+  rel_heights = c(1, 0.9),
+  labels = "auto"
+)
 ```
 
 ## **Catch composition**
@@ -617,18 +708,20 @@ This section presents information on the composition of fisheries catches across
 ```{r IRIFishGroups, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=9, fig.cap='(ref:IRIFishGroups)'}
 # create base dataset for plotting
 
-plot_dat <- 
-report_data %>%
-  dplyr::group_by(trip_id, fish_group) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   catch_taxon = dplyr::first(catch_taxon),
-                   gear_type = dplyr::first(gear_type),
-                   individuals = sum(individuals, na.rm = T),
-                   weight = sum(weight, na.rm = T)) %>% 
+plot_dat <-
+  report_data %>%
+  dplyr::group_by(trip_id, fish_group) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    catch_taxon = dplyr::first(catch_taxon),
+    gear_type = dplyr::first(gear_type),
+    individuals = sum(individuals, na.rm = T),
+    weight = sum(weight, na.rm = T)
+  ) %>%
   dplyr::group_by(area, fish_group) %>%
   dplyr::summarise(
-    weight = sum(weight,na.rm = T),
-    individuals = sum(individuals,na.rm = T),
+    weight = sum(weight, na.rm = T),
+    individuals = sum(individuals, na.rm = T),
     obs = dplyr::n()
   ) %>%
   dplyr::group_by(area) %>%
@@ -642,27 +735,28 @@ report_data %>%
     area = area,
     fish_group = as.factor(fish_group),
     weight_perc = weight / weight_tot * 100,
-    individuals_perc = (individuals / individuals_tot * 100)*-1,
-    obs_perc = as.factor(round(obs / obs_tot * 100, 0))
-  ) %>%
-  tidyr::pivot_longer(-c(area, fish_group, obs_perc)) %>%
-  dplyr::ungroup() 
+    individuals_perc = (individuals / individuals_tot * 100),
+    obs_perc = round(obs / obs_tot * 100, 1),
+    iri = (weight_perc + individuals_perc) * obs_perc
+  )
 
-all_plots <- purrr::map(unique(plot_dat$area), ~ 
-                          plot_bar_grouped(data = plot_dat,
-                                           filter_var = .x,
-                                           fill_var = "fish_group",
-                                           facet_var = "area",
-                                           fill_scale = fish_colors,
-                                           fill_title = "Functional group"))
+all_plots <- purrr::map(unique(plot_dat$area), ~
+plot_iri(
+  data = plot_dat,
+  filter_var = .x,
+  fill_var = "fish_group",
+  facet_var = "area",
+  fill_scale = fish_colors,
+  fill_title = "Functional group"
+))
 
 main_plot <- cowplot::plot_grid(plotlist = all_plots, ncol = 3, align = "hv")
 
 cowplot::plot_grid(main_plot,
-                   dummy_plot_legend,
-                   ncol = 1, nrow=2,
-                   rel_heights = c(3, 0.75))
-
+  dummy_plot_legend,
+  ncol = 1, nrow = 2,
+  rel_heights = c(3, 0.75)
+)
 ```
 
 ### **Catch composition by gear type**
@@ -673,18 +767,20 @@ This section presents information on the composition of catches according to eac
 
 ```{r IRIFishGear, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=9, fig.cap='(ref:IRIFishGear)'}
 # create base dataset for plotting
-plot_dat <- 
+plot_dat <-
   report_data %>%
-    dplyr::group_by(trip_id, fish_group) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   catch_taxon = dplyr::first(catch_taxon),
-                   gear_type = dplyr::first(gear_type),
-                   individuals = sum(individuals, na.rm = T),
-                   weight = sum(weight, na.rm = T)) %>% 
+  dplyr::group_by(trip_id, fish_group) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    catch_taxon = dplyr::first(catch_taxon),
+    gear_type = dplyr::first(gear_type),
+    individuals = sum(individuals, na.rm = T),
+    weight = sum(weight, na.rm = T)
+  ) %>%
   dplyr::group_by(fish_group, gear_type) %>%
   dplyr::summarise(
-    weight = sum(weight,na.rm = T),
-    individuals = sum(individuals,na.rm = T),
+    weight = sum(weight, na.rm = T),
+    individuals = sum(individuals, na.rm = T),
     obs = dplyr::n()
   ) %>%
   dplyr::group_by(gear_type) %>%
@@ -698,27 +794,28 @@ plot_dat <-
     gear_type = gear_type,
     fish_group = as.factor(fish_group),
     weight_perc = weight / weight_tot * 100,
-    individuals_perc = (individuals / individuals_tot * 100)*-1,
-    obs_perc = as.factor(round(obs / obs_tot * 100, 1))
-  ) %>%
-  tidyr::pivot_longer(-c(gear_type, fish_group, obs_perc)) %>%
-  dplyr::ungroup() 
+    individuals_perc = (individuals / individuals_tot * 100),
+    obs_perc = round(obs / obs_tot * 100, 1),
+    iri = (weight_perc + individuals_perc) * obs_perc
+  )
 
-all_plots <- purrr::map(c("gill net", "long line", "hand line", "spear gun"), ~ 
-                          plot_bar_grouped(data = plot_dat,
-                                           filter_var = .x,
-                                           fill_var = "fish_group",
-                                           facet_var = "gear_type",
-                                           fill_scale = fish_colors,
-                                           fill_title = "Functional group"))
+all_plots <- purrr::map(c("gill net", "long line", "hand line", "spear gun"), ~
+plot_iri(
+  data = plot_dat,
+  filter_var = .x,
+  fill_var = "fish_group",
+  facet_var = "gear_type",
+  fill_scale = fish_colors,
+  fill_title = "Functional group"
+))
 
 main_plot <- cowplot::plot_grid(plotlist = all_plots, ncol = 2, nrow = 2, align = "hv")
 
 cowplot::plot_grid(main_plot,
-                   dummy_plot_legend,
-                   ncol = 1, nrow=2,
-                   rel_heights = c(3, 0.75))
-
+  dummy_plot_legend,
+  ncol = 1, nrow = 2,
+  rel_heights = c(3, 0.75)
+)
 ```
 
 ### **Length composition of functional groups**
@@ -730,25 +827,32 @@ The small pelagics and demersals, and the cephalopods caught on Atauro island ap
 ```{r LengthArea, echo=FALSE, message=FALSE, warning=FALSE, fig.height=6, fig.width=6, fig.cap='(ref:LengthArea)'}
 
 report_data %>%
-  dplyr::filter(individuals>0) %>% 
+  dplyr::filter(individuals > 0) %>%
   ggplot(aes(area, length, fill = area)) +
-  facet_wrap(.~fish_group, scales = "free", ncol = 3)+
-  theme_minimal(13)+
-  geom_violin(alpha = 0.6, size = 0.1, color = "transparent", scale = "width", trim = F, adjust = 1.5)+
-  stat_summary(fun.data=mean_sdl,
-               mult=1,
-               size = 0.1,
-               geom="pointrange")+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  labs(y = "Length (cm)",
-       x = "",
-       fill = "")+
-  theme(legend.position = "top",
-        axis.text.x = element_blank())+
-  scale_y_continuous(limits = c(0, NA),
-                     expand = c(0,0))
-
+  facet_wrap(. ~ fish_group, scales = "free", ncol = 3) +
+  theme_minimal(13) +
+  geom_violin(alpha = 0.6, size = 0.1, color = "transparent", scale = "width", trim = F, adjust = 1.5) +
+  stat_summary(
+    fun.data = mean_sdl,
+    mult = 1,
+    size = 0.1,
+    geom = "pointrange"
+  ) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  labs(
+    y = "Length (cm)",
+    x = "",
+    fill = ""
+  ) +
+  theme(
+    legend.position = "top",
+    axis.text.x = element_blank()
+  ) +
+  scale_y_continuous(
+    limits = c(0, NA),
+    expand = c(0, 0)
+  )
 ```
 
 ## **Total monthly landings**
@@ -775,23 +879,27 @@ Fishing is for many households however not their only or even primary source of 
 
 ```{r WeekTrips, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=4.5, fig.cap='(ref:WeekTrips)'}
 
- report_data %>%
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   landing_date = dplyr::first(landing_date)) %>% 
-  dplyr::select(-trip_id) %>% 
-  dplyr::mutate(week = lubridate::week(landing_date),
-                month = lubridate::month(landing_date)) %>% 
-  dplyr::group_by(area, month, week) %>% 
-  dplyr::summarise(obs = dplyr::n()) %>% 
-  dplyr::ungroup() %>% 
+report_data %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    landing_date = dplyr::first(landing_date)
+  ) %>%
+  dplyr::select(-trip_id) %>%
+  dplyr::mutate(
+    week = lubridate::week(landing_date),
+    month = lubridate::month(landing_date)
+  ) %>%
+  dplyr::group_by(area, month, week) %>%
+  dplyr::summarise(obs = dplyr::n()) %>%
+  dplyr::ungroup() %>%
   ggplot() +
-  facet_grid(area~., scales = "free")+
-  theme_minimal(13)+
-  stat_smooth(mapping = aes(month, obs, fill = area, color = area),alpha = 0.2, size = 0.5, show.legend = FALSE)+
-  geom_boxplot(mapping = aes(as.factor(month), obs, fill = area, color = area), alpha = 0.3, size = 0.2)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
+  facet_grid(area ~ ., scales = "free") +
+  theme_minimal(13) +
+  stat_smooth(mapping = aes(month, obs, fill = area, color = area), alpha = 0.2, size = 0.5, show.legend = FALSE) +
+  geom_boxplot(mapping = aes(as.factor(month), obs, fill = area, color = area), alpha = 0.3, size = 0.2) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
   scale_x_discrete(labels = c(
     "1" = "Jan",
     "2" = "Feb",
@@ -805,15 +913,18 @@ Fishing is for many households however not their only or even primary source of 
     "10" = "Oct",
     "11" = "Nov",
     "12" = "Dec"
-  ))+
-  labs(y = "No.trips per week",
-       x = "Month",
-       fill = "")+
-  theme(legend.position = "top",
-        strip.background = element_blank(),
-        strip.text = element_blank())+
-   guides(colour = "none")
-
+  )) +
+  labs(
+    y = "No.trips per week",
+    x = "Month",
+    fill = ""
+  ) +
+  theme(
+    legend.position = "top",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
+  guides(colour = "none")
 ```
 
 (ref:WeekCatch) **Seasonality of total monthly catch (tons).** Box plots of the estimated total catch (tons) for every month (2018-2021) for Atauro island, north coast, and south coast. The y-axis has a free scale for each region. The dashed line shows the loess regression with 95% confidence intervals.
@@ -821,21 +932,23 @@ Fishing is for many households however not their only or even primary source of 
 ```{r WeekCatch, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=4.5, fig.cap='(ref:WeekCatch)'}
 
 report_data %>%
-  dplyr::filter(individuals > 0) %>% 
-  dplyr::mutate(week = lubridate::week(landing_date),
-                month = lubridate::month(landing_date),
-                weight = weight/1000000) %>% 
-  dplyr::group_by(area, month, week) %>% 
-  dplyr::summarise(weight = sum(weight, na.rm = T)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::filter(weight >0) %>% 
+  dplyr::filter(individuals > 0) %>%
+  dplyr::mutate(
+    week = lubridate::week(landing_date),
+    month = lubridate::month(landing_date),
+    weight = weight / 1000000
+  ) %>%
+  dplyr::group_by(area, month, week) %>%
+  dplyr::summarise(weight = sum(weight, na.rm = T)) %>%
+  dplyr::ungroup() %>%
+  dplyr::filter(weight > 0) %>%
   ggplot() +
-  facet_grid(area~., scales = "free")+
-  theme_minimal(13)+
-  stat_smooth(mapping = aes(month, weight, fill = area, color = area),alpha = 0.2, size = 0.5, show.legend = FALSE)+
-  geom_boxplot(mapping = aes(as.factor(month), weight, fill = area, color = area), alpha = 0.3, size = 0.2)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
+  facet_grid(area ~ ., scales = "free") +
+  theme_minimal(13) +
+  stat_smooth(mapping = aes(month, weight, fill = area, color = area), alpha = 0.2, size = 0.5, show.legend = FALSE) +
+  geom_boxplot(mapping = aes(as.factor(month), weight, fill = area, color = area), alpha = 0.3, size = 0.2) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
   scale_x_discrete(labels = c(
     "1" = "Jan",
     "2" = "Feb",
@@ -849,13 +962,17 @@ report_data %>%
     "10" = "Oct",
     "11" = "Nov",
     "12" = "Dec"
-  ))+
-  labs(y = "Catch (tons) per month",
-       x = "Month",
-       fill = "")+
-  theme(legend.position = "top",
-        strip.background = element_blank(),
-        strip.text = element_blank())+
+  )) +
+  labs(
+    y = "Catch (tons) per month",
+    x = "Month",
+    fill = ""
+  ) +
+  theme(
+    legend.position = "top",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
   guides(colour = "none")
 ```
 
@@ -876,18 +993,17 @@ Most of the fish being kept for own consumption is smaller sized fish and fish s
 ```{r Usage, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7.5, fig.width=6, fig.cap='(ref:Usage)'}
 
 plot_fun <- function(data = NULL, usage = NULL) {
-  
   y_label <- ifelse(usage == "Own consumption", "Weight (Kg)", "")
   x_label <- ifelse(usage == "Sold on market", "Date", "")
-  
-  main_plot <- 
+
+  main_plot <-
     data %>%
     dplyr::filter(catch_purpose == usage) %>%
     ggplot(aes(month_period, mean)) +
     theme_minimal(13) +
     annotate("rect",
-             xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
-             ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+      xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+      ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
     ) +
     geom_point(aes(color = area), size = 0.25) +
     geom_line(aes(color = area), size = 0.25) +
@@ -895,7 +1011,8 @@ plot_fun <- function(data = NULL, usage = NULL) {
     scale_fill_manual(values = area_colors) +
     scale_color_manual(values = area_colors) +
     scale_y_continuous(
-      expand = c(0, 0)) +
+      expand = c(0, 0)
+    ) +
     scale_x_date(
       date_breaks = "3 month",
       minor_breaks = NULL,
@@ -909,7 +1026,7 @@ plot_fun <- function(data = NULL, usage = NULL) {
       strip.text = element_blank(),
       plot.title = element_text(size = 12, face = "bold")
     ) +
-    ggtitle(usage)+
+    ggtitle(usage) +
     labs(
       x = x_label,
       y = y_label,
@@ -917,45 +1034,55 @@ plot_fun <- function(data = NULL, usage = NULL) {
       fill = ""
     ) +
     guides(colour = "none")
-  
-  plot_legend <<-  
-    ggpubr::get_legend(main_plot) %>% 
+
+  plot_legend <<-
+    ggpubr::get_legend(main_plot) %>%
     ggpubr::as_ggplot()
-  
+
   main_plot
 }
 
-plot_dat <- 
+plot_dat <-
   report_data %>%
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(landing_date = dplyr::first(landing_date),
-                   area = dplyr::first(area),
-                   catch_purpose = dplyr::first(catch_purpose),
-                   weight = sum(weight, na.rm =T)) %>% 
-  dplyr::mutate(week = lubridate::week(landing_date),
-                month_period = lubridate::floor_date(landing_date, unit = "month"),
-                weight = weight/1000,
-                catch_purpose = dplyr::case_when(catch_purpose == "both" ~ "Both",
-                                                 catch_purpose == "food" ~ "Own consumption",
-                                                 catch_purpose == "sale" ~ "Sold on market",
-                                                 TRUE ~ .data$catch_purpose),
-                catch_purpose = as.factor(catch_purpose)) %>% 
-  dplyr::select(area, catch_purpose, month_period, week, weight) %>% 
-  dplyr::group_by(area, catch_purpose, month_period, week) %>% 
-  dplyr::summarise(weight = sum(weight, na.rm =TRUE)) %>% 
-  dplyr::group_by(area, catch_purpose, month_period) %>% 
-  dplyr::summarise(mean = mean(weight, na.rm =TRUE),
-                   sd = sd(weight,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper = dplyr::case_when(catch_purpose == "Both" & .data$CI_upper > 10500 ~ 10500, 
-                                               catch_purpose == "Own consumption" & .data$CI_upper > 750 ~ 750,
-                                               catch_purpose == "Sold on market" & .data$CI_upper > 6000 ~ 6000,
-                                               TRUE ~ .data$CI_upper),
-                   CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower)) %>% 
-  dplyr::ungroup() 
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    landing_date = dplyr::first(landing_date),
+    area = dplyr::first(area),
+    catch_purpose = dplyr::first(catch_purpose),
+    weight = sum(weight, na.rm = T)
+  ) %>%
+  dplyr::mutate(
+    week = lubridate::week(landing_date),
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    weight = weight / 1000,
+    catch_purpose = dplyr::case_when(
+      catch_purpose == "both" ~ "Both",
+      catch_purpose == "food" ~ "Own consumption",
+      catch_purpose == "sale" ~ "Sold on market",
+      TRUE ~ .data$catch_purpose
+    ),
+    catch_purpose = as.factor(catch_purpose)
+  ) %>%
+  dplyr::select(area, catch_purpose, month_period, week, weight) %>%
+  dplyr::group_by(area, catch_purpose, month_period, week) %>%
+  dplyr::summarise(weight = mean(weight, na.rm = TRUE)) %>%
+  dplyr::group_by(area, catch_purpose, month_period) %>%
+  dplyr::summarise(
+    mean = mean(weight, na.rm = TRUE),
+    sd = sd(weight, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = dplyr::case_when(
+      catch_purpose == "Both" & .data$CI_upper > 500 ~ 500,
+      catch_purpose == "Own consumption" & .data$CI_upper > 100 ~ 100,
+      catch_purpose == "Sold on market" & .data$CI_upper > 85 ~ 85,
+      TRUE ~ .data$CI_upper
+    ),
+    CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower)
+  ) %>%
+  dplyr::ungroup()
 
 all_plots <- purrr::map(
   .x = unique(plot_dat$catch_purpose),
@@ -966,13 +1093,13 @@ all_plots <- purrr::map(
 )
 
 cowplot::plot_grid(plot_legend,
-                   all_plots[[1]] + theme(legend.position = "none"),
-                   all_plots[[2]] + theme(legend.position = "none"),
-                   all_plots[[3]] + theme(legend.position = "none"),
-                   ncol = 1, nrow = 4,
-                   rel_heights = c(0.5, 2,2,2),
-                   align = "v")
-
+  all_plots[[1]] + theme(legend.position = "none"),
+  all_plots[[2]] + theme(legend.position = "none"),
+  all_plots[[3]] + theme(legend.position = "none"),
+  ncol = 1, nrow = 4,
+  rel_heights = c(0.5, 2, 2, 2),
+  align = "v"
+)
 ```
 
 (ref:UsageProp) **Bar plot of the destination of the catch per species.** The y-axis shows individual species grouped by functional group and the x-axis shows the percentage of the catch in weight (kg) being sold on the market (brown), held for own consumption (light green), or used for both (grey).
@@ -980,36 +1107,48 @@ cowplot::plot_grid(plot_legend,
 ```{r UsageProp, echo=FALSE, message=FALSE, warning=FALSE, fig.height=9, fig.width=8, fig.cap='(ref:UsageProp)'}
 
 report_data %>%
-  dplyr::filter(!catch_name=="Herring") %>% 
-  dplyr::group_by(trip_id, catch_name) %>% 
-  dplyr::summarise(catch_purpose = dplyr::first(catch_purpose),
-                   fish_group = dplyr::first(fish_group),
-                   catch_name = dplyr::first(catch_name),
-                   weight = sum(weight, na.rm =TRUE)) %>% 
+  dplyr::filter(!catch_name == "Herring") %>%
+  dplyr::group_by(trip_id, catch_name) %>%
+  dplyr::summarise(
+    catch_purpose = dplyr::first(catch_purpose),
+    fish_group = dplyr::first(fish_group),
+    catch_name = dplyr::first(catch_name),
+    weight = sum(weight, na.rm = TRUE)
+  ) %>%
   dplyr::filter(!is.na(catch_purpose) & weight > 0) %>%
-  dplyr::group_by(catch_purpose, fish_group, catch_name) %>% 
-  dplyr::summarise(weight = sum(weight, na.rm =TRUE),
-                   obs = dplyr::n()) %>% 
-  dplyr::group_by(catch_name) %>% 
-  dplyr::mutate(weight_tot = sum(weight, na.rm =T),
-                weight_perc = weight / weight_tot *100,
-                obs = sum(obs),
-                catch_purpose = dplyr::case_when(catch_purpose == "both" ~ "Both",
-                                                 catch_purpose == "food" ~ "Own consumption",
-                                                 catch_purpose == "sale" ~ "Sold on market",
-                                                 TRUE ~ .data$catch_purpose)) %>% 
-  dplyr::filter(!fish_group %in% c("Unknown", "Molluscs","Shrimps")) %>% 
+  dplyr::group_by(catch_purpose, fish_group, catch_name) %>%
+  dplyr::summarise(
+    weight = sum(weight, na.rm = TRUE),
+    obs = dplyr::n()
+  ) %>%
+  dplyr::group_by(catch_name) %>%
+  dplyr::mutate(
+    weight_tot = sum(weight, na.rm = T),
+    weight_perc = weight / weight_tot * 100,
+    obs = sum(obs),
+    catch_purpose = dplyr::case_when(
+      catch_purpose == "both" ~ "Both",
+      catch_purpose == "food" ~ "Own consumption",
+      catch_purpose == "sale" ~ "Sold on market",
+      TRUE ~ .data$catch_purpose
+    )
+  ) %>%
+  dplyr::filter(!fish_group %in% c("Unknown", "Molluscs", "Shrimps")) %>%
   ggplot(mapping = aes(x = reorder(catch_name, weight_perc), y = weight_perc, fill = catch_purpose)) +
-  coord_flip()+
-  geom_bar(stat="identity", width = 0.8) +
-  facet_grid(fish_group~., scales = "free_y", space = "free_y")+
+  coord_flip() +
+  geom_bar(stat = "identity", width = 0.8) +
+  facet_grid(fish_group ~ ., scales = "free_y", space = "free_y") +
   theme_minimal(11) +
-  theme(text = element_text(family = "Helvetica"),
-        strip.text.y  = element_text(angle = 0)) +
+  theme(
+    text = element_text(family = "Helvetica"),
+    strip.text.y = element_text(angle = 0)
+  ) +
   theme(legend.position = "top") +
   scale_fill_manual(values = catch_use_palette) +
-  scale_y_continuous(labels = absolute_percent,
-                     expand = c(0, 0)) +
+  scale_y_continuous(
+    labels = absolute_percent,
+    expand = c(0, 0)
+  ) +
   labs(y = "Catch stock", x = "", fill = "")
 ```
 
@@ -1019,81 +1158,101 @@ report_data %>%
 
 everyother <- function(x) x[seq_along(x) %% 7 == 1]
 
-p1 <- 
+p1 <-
   report_data %>%
-  dplyr::filter(!catch_name=="Herring" & individuals >0) %>% 
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   catch_purpose = dplyr::first(catch_purpose),
-                   weight = sum(weight, na.rm =TRUE),
-                   length = dplyr::first(length),
-                   obs = dplyr::n()) %>% 
-  dplyr::group_by(area, length) %>% 
-  dplyr::mutate(weight_tot = sum(weight, na.rm =T),
-                weight_perc = weight / weight_tot *100,
-                obs = sum(obs),
-                catch_purpose = dplyr::case_when(catch_purpose == "both" ~ "Both",
-                                                 catch_purpose == "food" ~ "Own consumption",
-                                                 catch_purpose == "sale" ~ "Sold on market",
-                                                 TRUE ~ .data$catch_purpose)) %>% 
-  dplyr::filter(weight_perc>0) %>% 
+  dplyr::filter(!catch_name == "Herring" & individuals > 0) %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    catch_purpose = dplyr::first(catch_purpose),
+    weight = sum(weight, na.rm = TRUE),
+    length = dplyr::first(length),
+    obs = dplyr::n()
+  ) %>%
+  dplyr::group_by(area, length) %>%
+  dplyr::mutate(
+    weight_tot = sum(weight, na.rm = T),
+    weight_perc = weight / weight_tot * 100,
+    obs = sum(obs),
+    catch_purpose = dplyr::case_when(
+      catch_purpose == "both" ~ "Both",
+      catch_purpose == "food" ~ "Own consumption",
+      catch_purpose == "sale" ~ "Sold on market",
+      TRUE ~ .data$catch_purpose
+    )
+  ) %>%
+  dplyr::filter(weight_perc > 0) %>%
   ggplot(mapping = aes(as.factor(length), y = weight_perc, fill = catch_purpose)) +
   geom_col() +
-  facet_grid(.~area, scales = "free")+
+  facet_grid(. ~ area, scales = "free") +
   theme_minimal(11) +
   theme(text = element_text(family = "Helvetica")) +
   theme(legend.position = "top") +
   scale_fill_manual(values = catch_use_palette) +
-  scale_y_continuous(labels = absolute_percent,
-                     expand = c(0, 0)) +
-  scale_x_discrete(breaks = everyother)+
+  scale_y_continuous(
+    labels = absolute_percent,
+    expand = c(0, 0)
+  ) +
+  scale_x_discrete(breaks = everyother) +
   labs(y = "Percentage of catch", x = "", fill = "")
 
 everyother <- function(x) x[seq_along(x) %% 3 == 1]
 
-dat <- 
+dat <-
   report_data %>%
-  dplyr::filter(!catch_name=="Herring" & individuals >0 & !is.na(length)) %>% 
-  dplyr::group_by(trip_id) %>% 
-  dplyr::mutate(length = dplyr::case_when(length > 60 ~ 60, TRUE ~ length)) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   catch_purpose = dplyr::first(catch_purpose),
-                   weight = sum(weight, na.rm =TRUE),
-                   length = dplyr::first(length),
-                   obs = dplyr::n()) %>% 
-  dplyr::mutate(length = as.character(length),
-                length = dplyr::case_when(.data$length == 60 ~ ">60", TRUE ~ .data$length),
-                length = as.factor(length)) 
-    
-dat$length <- factor(dat$length, levels = c("1","7.5","12.5","17.5","22.5","27.5","32.5","37.5","42.5","47.5","52.5","57.5",">60"))
+  dplyr::filter(!catch_name == "Herring" & individuals > 0 & !is.na(length)) %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::mutate(length = dplyr::case_when(length > 60 ~ 60, TRUE ~ length)) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    catch_purpose = dplyr::first(catch_purpose),
+    weight = sum(weight, na.rm = TRUE),
+    length = dplyr::first(length),
+    obs = dplyr::n()
+  ) %>%
+  dplyr::mutate(
+    length = as.character(length),
+    length = dplyr::case_when(.data$length == 60 ~ ">60", TRUE ~ .data$length),
+    length = as.factor(length)
+  )
 
-p2 <- 
-  dat %>% 
-  dplyr::group_by(area, length) %>% 
-  dplyr::mutate(weight = weight/1000,
-                weight_tot = sum(weight, na.rm =T),
-                obs = sum(obs),
-                catch_purpose = dplyr::case_when(catch_purpose == "both" ~ "Both",
-                                                 catch_purpose == "food" ~ "Own consumption",
-                                                 catch_purpose == "sale" ~ "Sold on market",
-                                                 TRUE ~ .data$catch_purpose)) %>% 
-  dplyr::filter(weight>0) %>% 
+dat$length <- factor(dat$length, levels = c("1", "7.5", "12.5", "17.5", "22.5", "27.5", "32.5", "37.5", "42.5", "47.5", "52.5", "57.5", ">60"))
+
+p2 <-
+  dat %>%
+  dplyr::group_by(area, length) %>%
+  dplyr::mutate(
+    weight = weight / 1000,
+    weight_tot = sum(weight, na.rm = T),
+    obs = sum(obs),
+    catch_purpose = dplyr::case_when(
+      catch_purpose == "both" ~ "Both",
+      catch_purpose == "food" ~ "Own consumption",
+      catch_purpose == "sale" ~ "Sold on market",
+      TRUE ~ .data$catch_purpose
+    )
+  ) %>%
+  dplyr::filter(weight > 0) %>%
   ggplot(mapping = aes(length, y = weight, fill = catch_purpose)) +
   geom_col() +
-  facet_wrap(.~area, scales = "free")+
+  facet_wrap(. ~ area, scales = "free") +
   theme_minimal(11) +
   theme(text = element_text(family = "Helvetica")) +
-  theme(legend.position = "none",
-        strip.text = element_blank()) +
+  theme(
+    legend.position = "none",
+    strip.text = element_blank()
+  ) +
   scale_fill_manual(values = catch_use_palette) +
   scale_y_continuous(expand = c(0, 0)) +
-  scale_x_discrete(breaks = everyother)+
+  scale_x_discrete(breaks = everyother) +
   labs(y = "Weight (Kg)", x = "Length (cm)", fill = "")
 
-cowplot::plot_grid(p1,p2,ncol =1,
-                   align = "hv",
-                   rel_heights = c(1,0.75),
-                   labels = "auto")
+cowplot::plot_grid(p1, p2,
+  ncol = 1,
+  align = "hv",
+  rel_heights = c(1, 0.75),
+  labels = "auto"
+)
 ```
 
 ## **Market value of catch**
@@ -1114,58 +1273,71 @@ After Covid, both the South and North coasts were characterized by a consistent 
 
 ```{r MarketValue, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3.5, fig.width=6.5, fig.cap='(ref:MarketValue)'}
 
-single_catches <- 
-  report_data %>% 
-  group_by(trip_id) %>% 
-  dplyr::count(catch_taxon) %>% 
-  dplyr::filter(n<=12) %>% 
+single_catches <-
+  report_data %>%
+  group_by(trip_id) %>%
+  dplyr::count(catch_taxon) %>%
+  dplyr::filter(n <= 12) %>%
   magrittr::extract2("trip_id")
 
 report_data %>%
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month")) %>% 
-  dplyr::filter(trip_id %in% single_catches &!catch_taxon == "MZZ" & !is.na(weight) & !is.na(landing_value) &
-                  catch_purpose == "sale" & landing_date > "2019-01-01") %>% 
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(period = dplyr::first(period),
-                   area = dplyr::first(area),
-                   month_period = dplyr::first(month_period),
-                   landing_date = dplyr::first(landing_date),
-                   weight = sum(weight, na.rm = T),
-                   landing_value = dplyr::first(landing_value)) %>% 
-  dplyr::filter(weight >0 & landing_value >0) %>% 
-  dplyr::mutate(weight = weight/1000,
-                price_weight = landing_value/weight) %>% 
-  dplyr::group_by(area, month_period) %>% 
-  dplyr::summarise(mean = mean(price_weight, na.rm =TRUE),
-                   sd = sd(price_weight,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal()+
+  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month")) %>%
+  dplyr::filter(trip_id %in% single_catches & !catch_taxon == "MZZ" & !is.na(weight) & !is.na(landing_value) &
+    catch_purpose == "sale" & landing_date > "2019-01-01") %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    period = dplyr::first(period),
+    area = dplyr::first(area),
+    month_period = dplyr::first(month_period),
+    landing_date = dplyr::first(landing_date),
+    weight = sum(weight, na.rm = T),
+    landing_value = dplyr::first(landing_value)
+  ) %>%
+  dplyr::filter(weight > 0 & landing_value > 0) %>%
+  dplyr::mutate(
+    weight = weight / 1000,
+    price_weight = landing_value / weight
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean = mean(price_weight, na.rm = TRUE),
+    sd = sd(price_weight, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal() +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.25)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA),
-                     n.breaks = 8,
-                     labels = scales::dollar) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2019-01-01"), NA)) +
-  theme(legend.position = "top")+
-  labs(x = "",
-       y = "Price per Kg catch",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.25) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA),
+    n.breaks = 8,
+    labels = scales::dollar
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2019-01-01"), NA)
+  ) +
+  theme(legend.position = "top") +
+  labs(
+    x = "",
+    y = "Price per Kg catch",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
 ```
 
@@ -1173,142 +1345,178 @@ report_data %>%
 
 ```{r ValueGear, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=6.5, fig.cap='(ref:ValueGear)'}
 
-single_catches <- 
-  report_data %>% 
-  group_by(trip_id) %>% 
-  dplyr::count(catch_taxon) %>% 
-  dplyr::filter(n<=12) %>% 
+single_catches <-
+  report_data %>%
+  group_by(trip_id) %>%
+  dplyr::count(catch_taxon) %>%
+  dplyr::filter(n <= 12) %>%
   magrittr::extract2("trip_id")
 
 report_data %>%
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month")) %>% 
+  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month")) %>%
   dplyr::filter(trip_id %in% single_catches & !catch_taxon == "MZZ" & !is.na(weight) & !is.na(landing_value) &
-                  catch_purpose == "sale" & landing_date > "2019-04-01" &
-                  gear_type %in% c("gill net", "long line", "hand line", "spear gun")) %>% 
-  droplevels() %>% 
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(period = dplyr::first(period),
-                   gear_type = dplyr::first(gear_type),
-                   month_period = dplyr::first(month_period),
-                   landing_date = dplyr::first(landing_date),
-                   weight = sum(weight, na.rm = T),
-                   landing_value = dplyr::first(landing_value)) %>% 
-  dplyr::filter(weight >0 & landing_value >0) %>% 
-  dplyr::mutate(weight = weight/1000,
-                price_weight = landing_value/weight) %>% 
-  dplyr::group_by(gear_type, month_period) %>% 
-  dplyr::summarise(mean = mean(price_weight, na.rm =TRUE),
-                   sd = sd(price_weight,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>%
-  dplyr::mutate(CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower),
-                CI_upper = dplyr::case_when(gear_type == "spear gun" & .data$CI_upper > 12 ~ 12,
-                                            TRUE ~ .data$CI_upper)) %>% 
-  ggplot(aes(month_period, mean))+
-  facet_wrap(.~gear_type, scales = "free", ncol =2)+
-  theme_minimal()+
+    catch_purpose == "sale" & landing_date > "2019-04-01" &
+    gear_type %in% c("gill net", "long line", "hand line", "spear gun")) %>%
+  droplevels() %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    period = dplyr::first(period),
+    gear_type = dplyr::first(gear_type),
+    month_period = dplyr::first(month_period),
+    landing_date = dplyr::first(landing_date),
+    weight = sum(weight, na.rm = T),
+    landing_value = dplyr::first(landing_value)
+  ) %>%
+  dplyr::filter(weight > 0 & landing_value > 0) %>%
+  dplyr::mutate(
+    weight = weight / 1000,
+    price_weight = landing_value / weight
+  ) %>%
+  dplyr::group_by(gear_type, month_period) %>%
+  dplyr::summarise(
+    mean = mean(price_weight, na.rm = TRUE),
+    sd = sd(price_weight, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  dplyr::mutate(
+    CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower),
+    CI_upper = dplyr::case_when(
+      gear_type == "spear gun" & .data$CI_upper > 12 ~ 12,
+      TRUE ~ .data$CI_upper
+    )
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  facet_wrap(. ~ gear_type, scales = "free", ncol = 2) +
+  theme_minimal() +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = gear_type), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = gear_type), alpha=0.4)+
-  stat_smooth(aes(color = gear_type), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = c("#B3DE69", "#FDB462", "#80B1D3","#FB8072"))+
-  scale_color_manual(values = c("#B3DE69", "#FDB462", "#80B1D3","#FB8072"))+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA),
-                     n.breaks = 8,
-                     labels = scales::dollar) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2019-01-01"), NA)) +
-  theme(legend.position = "top")+
-  labs(x = "",
-       y = "Price per Kg catch",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = gear_type), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = gear_type), alpha = 0.4) +
+  stat_smooth(aes(color = gear_type), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = c("#B3DE69", "#FDB462", "#80B1D3", "#FB8072")) +
+  scale_color_manual(values = c("#B3DE69", "#FDB462", "#80B1D3", "#FB8072")) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA),
+    n.breaks = 8,
+    labels = scales::dollar
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2019-01-01"), NA)
+  ) +
+  theme(legend.position = "top") +
+  labs(
+    x = "",
+    y = "Price per Kg catch",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
-
 ```
 
 (ref:ValueFish) **Mean market value (USD) per kg of the catch of the most frequently caught functional groups** in Atauro Island (grey), north coast (red) and south coast (light blue), during the period of January 2019 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling for every functional group.
 
 ```{r ValueFish, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=7, fig.cap='(ref:ValueFish)'}
 
-single_catches <- 
-  report_data %>% 
-  group_by(trip_id) %>% 
-  dplyr::count(catch_taxon) %>% 
-  dplyr::filter(n<=12) %>% 
+single_catches <-
+  report_data %>%
+  group_by(trip_id) %>%
+  dplyr::count(catch_taxon) %>%
+  dplyr::filter(n <= 12) %>%
   magrittr::extract2("trip_id")
 
 report_data %>%
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
-                cepha_atauro = dplyr::case_when(fish_group == "Cephalopods" & !area == "Atauro island" ~ "no", TRUE ~ "yes"),
-                sharks_south = dplyr::case_when(fish_group == "Sharks and rays" & !area == "South Coast" ~ "no", TRUE ~ "yes")) %>% 
-  dplyr::filter(trip_id %in% single_catches &!catch_taxon == "MZZ" &
-                !is.na(weight) & !is.na(landing_value) &
-                catch_purpose == "sale" &
-                landing_date > "2019-01-01" &
-                !fish_group %in% c("Molluscs", "Crustaceans", "Shrimps") &
-                cepha_atauro == "yes",
-                sharks_south == "yes") %>% 
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(period = dplyr::first(period),
-                   area = dplyr::first(area),
-                   month_period = dplyr::first(month_period),
-                   landing_date = dplyr::first(landing_date),
-                   fish_group = dplyr::first(fish_group),
-                   weight = sum(weight, na.rm = T),
-                   landing_value = dplyr::first(landing_value)) %>% 
-  dplyr::filter(weight >0 & landing_value >0) %>% 
-  dplyr::mutate(weight = weight/1000,
-                price_weight = landing_value/weight) %>% 
-  dplyr::group_by(area, fish_group, month_period) %>% 
-  dplyr::summarise(mean = mean(price_weight, na.rm =TRUE),
-                   sd = sd(price_weight,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  dplyr::mutate(CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower),
-                CI_upper = dplyr::case_when(fish_group == "Large demersals" &.data$CI_upper > 40 ~ 40,
-                                            fish_group == "Sharks and rays" &.data$CI_upper > 40 ~ 40,
-                                            fish_group == "Small demersals" &.data$CI_upper > 40 ~ 40,
-                                            fish_group == "Small pelagics" &.data$CI_upper > 12 ~ 12,
-                                            fish_group == "Cephalopods" &.data$CI_upper > 25 ~ 25,
-                                            TRUE ~ .data$CI_upper)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal()+
-  facet_wrap(.~fish_group, scales = "free", ncol = 2)+
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    cepha_atauro = dplyr::case_when(fish_group == "Cephalopods" & !area == "Atauro island" ~ "no", TRUE ~ "yes"),
+    sharks_south = dplyr::case_when(fish_group == "Sharks and rays" & !area == "South Coast" ~ "no", TRUE ~ "yes")
+  ) %>%
+  dplyr::filter(
+    trip_id %in% single_catches & !catch_taxon == "MZZ" &
+      !is.na(weight) & !is.na(landing_value) &
+      catch_purpose == "sale" &
+      landing_date > "2019-01-01" &
+      !fish_group %in% c("Molluscs", "Crustaceans", "Shrimps") &
+      cepha_atauro == "yes",
+    sharks_south == "yes"
+  ) %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    period = dplyr::first(period),
+    area = dplyr::first(area),
+    month_period = dplyr::first(month_period),
+    landing_date = dplyr::first(landing_date),
+    fish_group = dplyr::first(fish_group),
+    weight = sum(weight, na.rm = T),
+    landing_value = dplyr::first(landing_value)
+  ) %>%
+  dplyr::filter(weight > 0 & landing_value > 0) %>%
+  dplyr::mutate(
+    weight = weight / 1000,
+    price_weight = landing_value / weight
+  ) %>%
+  dplyr::group_by(area, fish_group, month_period) %>%
+  dplyr::summarise(
+    mean = mean(price_weight, na.rm = TRUE),
+    sd = sd(price_weight, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  dplyr::mutate(
+    CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower),
+    CI_upper = dplyr::case_when(
+      fish_group == "Large demersals" & .data$CI_upper > 40 ~ 40,
+      fish_group == "Sharks and rays" & .data$CI_upper > 40 ~ 40,
+      fish_group == "Small demersals" & .data$CI_upper > 40 ~ 40,
+      fish_group == "Small pelagics" & .data$CI_upper > 12 ~ 12,
+      fish_group == "Cephalopods" & .data$CI_upper > 25 ~ 25,
+      TRUE ~ .data$CI_upper
+    )
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal() +
+  facet_wrap(. ~ fish_group, scales = "free", ncol = 2) +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.25)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA),
-                     n.breaks = 8,
-                     labels = scales::dollar) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2019-01-01"), NA)) +
-  theme(legend.position = "top")+
-  labs(x = "Date",
-       y = "Price per Kg catch",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.25) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA),
+    n.breaks = 8,
+    labels = scales::dollar
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2019-01-01"), NA)
+  ) +
+  theme(legend.position = "top") +
+  labs(
+    x = "Date",
+    y = "Price per Kg catch",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
-
 ```
 
 # **Covid Box**

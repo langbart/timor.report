@@ -1,7 +1,7 @@
-This is LuaHBTeX, Version 1.13.2 (TeX Live 2021)  (format=lualatex 2022.3.5)  5 MAY 2022 14:12
+This is LuaHBTeX, Version 1.13.2 (TeX Live 2021)  (format=lualatex 2022.3.5)  7 MAY 2022 12:21
  restricted system commands enabled.
-**timor_report.tex
-(./timor_report.tex
+**"/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report.tex"
+("/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report.tex"
 LaTeX2e <2021-11-15> patch level 1
 Lua module: luaotfload 2022-02-27 3.20 Lua based OpenType font support
 Lua module: lualibs 2021-05-20 2.74 ConTeXt Lua standard libraries.
@@ -1057,13 +1057,13 @@ Underfull \hbox (badness 10000) in paragraph at lines 221--222
 LaTeX Font Info:    Font shape `TU/Montserrat(0)/b/n' will be
 (Font)              scaled to size 12.0pt on input line 230.
 [9<./timor_maps/timor_bat.png><./timor_maps/timor_muni.png>] [10] [11]
-<timor_report_files/figure-latex/IRIGearGroups-1.pdf, id=257, 650.43pt x 361.35pt>
-File: timor_report_files/figure-latex/IRIGearGroups-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/IRIGearGroups-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/IRIGearGroups-1.pdf  used on input line 365.
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIGearGroups-1.pdf, id=257, 650.43pt x 361.35pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIGearGroups-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIGearGroups-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIGearGroups-1.pdf  used on input line 365.
 (luatex.def)             Requested size: 443.58669pt x 246.43704pt.
-[12<./timor_report_files/figure-latex/IRIGearGroups-1.pdf>]
-<timor_maps/spatial_effort.png, id=276, 453.695pt x 205.76875pt>
+[12</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIGearGroups-1.pdf>]
+<timor_maps/spatial_effort.png, id=277, 453.695pt x 205.76875pt>
 File: timor_maps/spatial_effort.png Graphic file (type png)
 <use timor_maps/spatial_effort.png>
 Package luatex.def Info: timor_maps/spatial_effort.png  used on input line 381.
@@ -1081,95 +1081,95 @@ Underfull \hbox (badness 10000) in paragraph at lines 381--382
 LaTeX Font Info:    Font shape `TU/Montserrat(0)/m/n' will be
 (Font)              scaled to size 5.0pt on input line 392.
 [13<./timor_maps/spatial_effort.png>]
-<timor_report_files/figure-latex/TripEffort-1.pdf, id=289, 469.755pt x 505.89pt>
-File: timor_report_files/figure-latex/TripEffort-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/TripEffort-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/TripEffort-1.pdf  used on input line 409.
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/TripEffort-1.pdf, id=290, 469.755pt x 505.89pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/TripEffort-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/TripEffort-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/TripEffort-1.pdf  used on input line 409.
 (luatex.def)             Requested size: 443.57677pt x 477.69804pt.
-[14] [15<./timor_report_files/figure-latex/TripEffort-1.pdf>]
-<timor_report_files/figure-latex/CatchEffort-1.pdf, id=311, 469.755pt x 505.89pt>
-File: timor_report_files/figure-latex/CatchEffort-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/CatchEffort-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/CatchEffort-1.pdf  used on input line 424.
+[14] [15</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/TripEffort-1.pdf>]
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/CatchEffort-1.pdf, id=312, 469.755pt x 505.89pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/CatchEffort-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/CatchEffort-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/CatchEffort-1.pdf  used on input line 424.
 (luatex.def)             Requested size: 443.57677pt x 477.69804pt.
-[16<./timor_report_files/figure-latex/CatchEffort-1.pdf>]
+[16</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/CatchEffort-1.pdf>]
 Underfull \hbox (badness 10000) in paragraph at lines 437--439
 
  []
 
-<timor_report_files/figure-latex/IRIFishGroups-1.pdf, id=330, 650.43pt x 361.35pt>
-File: timor_report_files/figure-latex/IRIFishGroups-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/IRIFishGroups-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/IRIFishGroups-1.pdf  used on input line 449.
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGroups-1.pdf, id=331, 650.43pt x 361.35pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGroups-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGroups-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGroups-1.pdf  used on input line 449.
 (luatex.def)             Requested size: 443.58669pt x 246.43704pt.
 [17]
-<timor_report_files/figure-latex/IRIFishGear-1.pdf, id=339, 650.43pt x 578.16pt>
-File: timor_report_files/figure-latex/IRIFishGear-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/IRIFishGear-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/IRIFishGear-1.pdf  used on input line 462.
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGear-1.pdf, id=340, 650.43pt x 578.16pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGear-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGear-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGear-1.pdf  used on input line 462.
 (luatex.def)             Requested size: 443.58669pt x 394.29927pt.
-[18<./timor_report_files/figure-latex/IRIFishGroups-1.pdf>]
-<timor_report_files/figure-latex/LengthArea-1.pdf, id=353, 433.62pt x 433.62pt>
-File: timor_report_files/figure-latex/LengthArea-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/LengthArea-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/LengthArea-1.pdf  used on input line 475.
+[18</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGroups-1.pdf>]
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthArea-1.pdf, id=355, 433.62pt x 433.62pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthArea-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthArea-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthArea-1.pdf  used on input line 475.
 (luatex.def)             Requested size: 433.63878pt x 433.63878pt.
-[19<./timor_report_files/figure-latex/IRIFishGear-1.pdf>]
+[19</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/IRIFishGear-1.pdf>]
 
 LaTeX Warning: Reference `fig:MonthlyCatch' on page 20 undefined on input line 484.
 
-[20<./timor_report_files/figure-latex/LengthArea-1.pdf>]
+[20</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthArea-1.pdf>]
 Underfull \hbox (badness 10000) in paragraph at lines 488--489
 
  []
 
-<timor_report_files/figure-latex/WeekTrips-1.pdf, id=391, 325.215pt x 361.35pt>
-File: timor_report_files/figure-latex/WeekTrips-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/WeekTrips-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/WeekTrips-1.pdf  used on input line 505.
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekTrips-1.pdf, id=394, 325.215pt x 361.35pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekTrips-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekTrips-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekTrips-1.pdf  used on input line 505.
 (luatex.def)             Requested size: 325.2142pt x 361.34912pt.
 [21]
-<timor_report_files/figure-latex/WeekCatch-1.pdf, id=404, 325.215pt x 361.35pt>
-File: timor_report_files/figure-latex/WeekCatch-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/WeekCatch-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/WeekCatch-1.pdf  used on input line 513.
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekCatch-1.pdf, id=407, 325.215pt x 361.35pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekCatch-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekCatch-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekCatch-1.pdf  used on input line 513.
 (luatex.def)             Requested size: 325.2142pt x 361.34912pt.
-[22<./timor_report_files/figure-latex/WeekTrips-1.pdf>] [23<./timor_report_files/figure-latex/WeekCatch-1.pdf>]
-<timor_report_files/figure-latex/Usage-1.pdf, id=438, 433.62pt x 542.025pt>
-File: timor_report_files/figure-latex/Usage-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/Usage-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/Usage-1.pdf  used on input line 535.
+[22</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekTrips-1.pdf>] [23</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/WeekCatch-1.pdf>]
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/Usage-1.pdf, id=441, 433.62pt x 542.025pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/Usage-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/Usage-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/Usage-1.pdf  used on input line 535.
 (luatex.def)             Requested size: 433.63217pt x 542.0402pt.
 [24]
-<timor_report_files/figure-latex/UsageProp-1.pdf, id=447, 578.16pt x 650.43pt>
-File: timor_report_files/figure-latex/UsageProp-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/UsageProp-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/UsageProp-1.pdf  used on input line 543.
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/UsageProp-1.pdf, id=450, 578.16pt x 650.43pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/UsageProp-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/UsageProp-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/UsageProp-1.pdf  used on input line 543.
 (luatex.def)             Requested size: 443.57896pt x 499.02634pt.
-[25<./timor_report_files/figure-latex/Usage-1.pdf>]
-<timor_report_files/figure-latex/LengthUsage-1.pdf, id=461, 469.755pt x 433.62pt>
-File: timor_report_files/figure-latex/LengthUsage-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/LengthUsage-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/LengthUsage-1.pdf  used on input line 551.
+[25</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/Usage-1.pdf>]
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthUsage-1.pdf, id=464, 469.755pt x 433.62pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthUsage-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthUsage-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthUsage-1.pdf  used on input line 551.
 (luatex.def)             Requested size: 443.57677pt x 409.45547pt.
-[26<./timor_report_files/figure-latex/UsageProp-1.pdf>] [27<./timor_report_files/figure-latex/LengthUsage-1.pdf>]
-<timor_report_files/figure-latex/MarketValue-1.pdf, id=488, 469.755pt x 252.945pt>
-File: timor_report_files/figure-latex/MarketValue-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/MarketValue-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/MarketValue-1.pdf  used on input line 574.
+[26</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/UsageProp-1.pdf>] [27</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/LengthUsage-1.pdf>]
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/MarketValue-1.pdf, id=491, 469.755pt x 252.945pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/MarketValue-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/MarketValue-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/MarketValue-1.pdf  used on input line 574.
 (luatex.def)             Requested size: 443.57677pt x 238.84903pt.
-<timor_report_files/figure-latex/ValueGear-1.pdf, id=489, 469.755pt x 361.35pt>
-File: timor_report_files/figure-latex/ValueGear-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/ValueGear-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/ValueGear-1.pdf  used on input line 582.
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueGear-1.pdf, id=492, 469.755pt x 361.35pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueGear-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueGear-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueGear-1.pdf  used on input line 582.
 (luatex.def)             Requested size: 443.57677pt x 341.2129pt.
-[28<./timor_report_files/figure-latex/MarketValue-1.pdf>]
-<timor_report_files/figure-latex/ValueFish-1.pdf, id=505, 505.89pt x 578.16pt>
-File: timor_report_files/figure-latex/ValueFish-1.pdf Graphic file (type pdf)
-<use timor_report_files/figure-latex/ValueFish-1.pdf>
-Package luatex.def Info: timor_report_files/figure-latex/ValueFish-1.pdf  used on input line 590.
+[28</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/MarketValue-1.pdf>]
+</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueFish-1.pdf, id=509, 505.89pt x 578.16pt>
+File: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueFish-1.pdf Graphic file (type pdf)
+<use /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueFish-1.pdf>
+Package luatex.def Info: /Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueFish-1.pdf  used on input line 590.
 (luatex.def)             Requested size: 443.58667pt x 506.95622pt.
-[29<./timor_report_files/figure-latex/ValueGear-1.pdf>] [30<./timor_report_files/figure-latex/ValueFish-1.pdf>] [31] [32] [33] (./timor_report.aux)
+[29</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueGear-1.pdf>] [30</Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-latex/ValueFish-1.pdf>] [31] [32] [33] (./timor_report.aux)
 
 LaTeX Warning: There were undefined references.
 
@@ -1178,19 +1178,19 @@ Package rerunfilecheck Info: File `timor_report.out' has not changed.
 )
 
 Here is how much of LuaTeX's memory you used:
- 20500 strings out of 477800
+ 20501 strings out of 477800
  100000,953878 words of node,token memory allocated
  746 words of node memory still in use:
    6 hlist, 2 vlist, 2 rule, 2 glue, 4 kern, 1 glyph, 28 attribute, 62 glue_spec, 28 attribute_list, 1 write, 1 user_defined, 20 pdf_action nodes
    avail lists: 1:1,2:1277,3:439,4:177,5:1549,6:201,7:9318,8:57,9:1167,10:26,11:607
  40284 multiletter control sequences out of 65536+600000
- 86 fonts using 27824443 bytes
- 86i,7n,122p,2884b,464s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 86 fonts using 27824215 bytes
+ 86i,7n,122p,2935b,464s stack positions out of 5000i,500n,10000p,200000b,80000s
 </Users/lore/Library/TinyTeX/texmf-dist/fonts/opentype/public/lm-math/latinmodern-math.otf></Users/lore/Library/TinyTeX/texmf-dist/fonts/opentype/public/montserrat/Montserrat-Bold.otf></Users/lore/Library/TinyTeX/texmf-dist/fonts/opentype/public/montserrat/Montserrat-Regular.otf>
-Output written on timor_report.pdf (33 pages, 3649138 bytes).
+Output written on timor_report.pdf (33 pages, 3635667 bytes).
 
-PDF statistics: 607 PDF objects out of 1000 (max. 8388607)
- 519 compressed objects within 6 object streams
+PDF statistics: 610 PDF objects out of 1000 (max. 8388607)
+ 522 compressed objects within 6 object streams
  106 named destinations out of 1000 (max. 131072)
  201 words of extra memory for PDF output out of 10000 (max. 100000000)
 
