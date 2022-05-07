@@ -19,6 +19,7 @@ Imports:
     readr,
     rmarkdown,
     roxygen2,
+    statebins,
     tidyr,
     tidyselect,
     usethis

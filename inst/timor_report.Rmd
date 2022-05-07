@@ -4,22 +4,22 @@ subtitle: "A detailed analysis of three years of small-scale fisheries catch and
 mainfont: Montserrat
 geometry: "left=3cm,right=3cm,top=2cm,bottom=2cm"
 output:
-  bookdown::html_document2:
-    number_sections: true
-    fig_caption: yes
-    toc: true
-    toc_depth: 2
-  bookdown::word_document2:
-    number_sections: true
-    fig_caption: yes
-    toc: true
-    toc_depth: 2
   bookdown::pdf_document2:
     latex_engine: lualatex
     toc: false
     toc_depth: 2
     number_sections: true
     fig_caption: yes
+  bookdown::word_document2:
+    number_sections: true
+    fig_caption: yes
+    toc: true
+    toc_depth: 2
+  bookdown::html_document2:
+    number_sections: true
+    fig_caption: yes
+    toc: true
+    toc_depth: 2
 header-includes: 
   - \usepackage{float} 
   - \floatplacement{figure}{H}
@@ -39,7 +39,7 @@ knitr::opts_chunk$set(cache = FALSE)
 ```
 
 ```{r, include=FALSE}
-# libraries
+####### libraries #######
 library(magrittr)
 library(ggplot2)
 library(tidytext)
@@ -48,15 +48,14 @@ library(ggchicklet)
 library(cowplot)
 library(ggpubr)
 library(RColorBrewer)
-
+library(statebins)
 
 setwd("../..")
 pars <- timor.report::read_config()
-
-# load data
+# load data #
 report_data <- timor.report::report_data
 
-# Store useful plotting functions:
+####### Store useful plotting functions #######
 label_date <- function(x) {
   format(x, "%b") %>%
     stringr::str_replace("Jan", paste0("Jan\n", format(x, "%Y")))
@@ -73,77 +72,114 @@ paste_percent <- function(x) {
 area_colors <- c("#505050", "#d23f67", "#17A3BF")
 catch_use_palette <- rev(c("#9f8985", "#87bdbc", "#dbdbc9"))
 
-gear_cols <- rev(brewer.pal(length(levels(report_data$gear_type)),"Set3"))
+gear_cols <- rev(brewer.pal(length(levels(report_data$gear_type)), "Set3"))
 names(gear_cols) <- levels(report_data$gear_type)
 gear_colors <- scale_fill_manual(values = gear_cols)
 
-fish_cols <- rev(brewer.pal(length(levels(report_data$fish_group)),"Set3"))
+fish_cols <- brewer.pal(length(levels(report_data$fish_group)), "Set3")
 names(fish_cols) <- levels(report_data$fish_group)
 fish_colors <- scale_fill_manual(values = fish_cols)
 
-plot_bar_grouped <- function(data = NULL,
-                              filter_var = NULL,
-                            facet_var = NULL,
-                            fill_var = NULL,
-                            fill_title = NULL,
-                            fill_scale = NULL,
-                            legend_rows = 3){
-  
-  dummy_plot <- 
+####### define IRI plot function #######
+
+plot_iri <- function(data = NULL,
+                     filter_var = NULL,
+                     facet_var = NULL,
+                     fill_var = NULL,
+                     fill_title = NULL,
+                     fill_scale = NULL,
+                     legend_rows = 3) {
+  dummy_plot <-
     data %>%
-    ggplot(aes(obs_perc,value, fill = data[,fill_var][[1]])) +
-    geom_chicklet(alpha = 0.75, radius = grid::unit(4, "pt"))+
-    #scale_fill_viridis_d(begin = 0, end = 1)+
+    ggplot(aes(obs_perc, weight_perc, fill = data[, fill_var][[1]])) +
+    geom_chicklet(alpha = 0.75, radius = grid::unit(4, "pt")) +
+    # scale_fill_viridis_d(begin = 0, end = 1)+
     fill_scale +
-    labs(fill = fill_title)+
-    theme_minimal()+
-    theme(legend.position = "bottom",
-          legend.key.size = unit(0.7, 'cm'))+
-    guides(fill = guide_legend(nrow = legend_rows,
-                               label.theme = element_text(size = 11)))
-  
-  dummy_plot_legend <<-  
-    ggpubr::get_legend(dummy_plot) %>% 
+    labs(fill = fill_title) +
+    theme_minimal() +
+    theme(
+      legend.position = "bottom",
+      legend.key.size = unit(0.7, "cm")
+    ) +
+    guides(fill = guide_legend(
+      nrow = legend_rows,
+      label.theme = element_text(size = 11)
+    ))
+
+  dummy_plot_legend <<-
+    ggpubr::get_legend(dummy_plot) %>%
     ggpubr::as_ggplot()
-  
-  if (facet_var == "area"){
-    dat <- 
-      data %>% 
+
+  if (facet_var == "area") {
+    dat <-
+      data %>%
       dplyr::filter(area == filter_var)
-    
+
     y_label <- ifelse(unique(dat$area %in% "Atauro island"),
-                      "FRQ of occurrence", "")
-    
+      "FRQ of occurrence", ""
+    )
   } else {
-    
-    dat <- 
-      data %>% 
-      dplyr::filter(gear_type %in% filter_var) 
-    
+    dat <-
+      data %>%
+      dplyr::filter(gear_type %in% filter_var)
+
     y_label <- ifelse(unique(dat$gear_type %in% c("gill net", "hand line")),
-                      "FRQ of occurrence", "")
+      "FRQ of occurrence", ""
+    )
   }
-  
-  main_plot <- 
-    ggplot(dat, aes(obs_perc,value, fill = dat[,fill_var][[1]])) +
-    theme_minimal(12.5)+
-    geom_chicklet(alpha = 0.75, radius = grid::unit(4, "pt"))+
-    geom_hline(yintercept = 0, size = 0.2, color = "grey30")+
-    coord_flip()+
-    #scale_fill_viridis_d(begin = 0, end = 1)+
+
+  dat <-
+    dat %>%
+    dplyr::mutate(type = forcats::fct_reorder(dat[[fill_var]], iri, .desc = T)) %>%
+    dplyr::arrange(obs_perc) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+      xmax = weight_perc,
+      xmin = -individuals_perc,
+      ymax = cumsum(obs_perc),
+      ymin = dplyr::lag(ymax, default = 0),
+      ybreaks = (ymin + ymax) / 2
+    )
+
+  n_breaks <- length(unique(dat$type))
+
+  main_plot <-
+    dat %>%
+    ggplot(aes(alpha = 0.75)) +
+    theme_minimal(12.5) +
+    statebins:::geom_rrect(aes(
+      xmin = xmin,
+      xmax = xmax,
+      ymin = ymin,
+      ymax = ymax,
+      fill = dat[, fill_var][[1]]
+    ),
+    colour = "transparent"
+    ) +
     fill_scale +
-    scale_y_continuous(labels = absolute_percent, n.breaks = 7)+
-    scale_x_discrete(labels = paste_percent)
-  
+    geom_vline(xintercept = 0, linetype = 2, size = 0.2, color = "grey30") +
+    scale_y_continuous(
+      breaks = dat$ybreaks[1:n_breaks],
+      labels = paste_percent(dat$obs_perc[1:n_breaks]),
+      minor_breaks = dat$ymax,
+      expand = c(0, 0)
+    ) +
+    scale_x_continuous(
+      labels = absolute_percent,
+      expand = c(0, 0)
+    )
+
   main_plot +
-    labs(x = y_label,
-         y = "N. individuals                 Weight",
-         title = filter_var)+
-    theme(legend.position = "none",
-          plot.title = element_text(hjust = 0.5))
+    labs(
+      y = y_label,
+      x = "N. individuals            Weight",
+      title = filter_var
+    ) +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(hjust = 0.5)
+    )
 }
-
-
 ```
 
 **Authors**
@@ -156,15 +192,15 @@ Sarah Jørgensen Veillat ^1^, Alexander Tilley^2,3^, Joctan Dos Reis Lopes^2^, E
 
 # **Executive Summary** {.unnumbered}
 
-Small-scale fisheries (SSF) represent almost half of global capture fisheries production, supporting the livelihoods of millions of people worldwide, and the food and nutrition of billions. However, the lack of data from these fisheries makes it difficult to ensure their fair inclusion in decisions about ocean resources, and to manage resources for sustainability. 
+Non è vero ! represent almost half of global capture fisheries production, supporting the livelihoods of millions of people worldwide, and the food and nutrition of billions. However, the lack of data from these fisheries makes it difficult to ensure their fair inclusion in decisions about ocean resources, and to manage resources for sustainability. 
 
-Timor-Leste has one of the highest rates of malnutrition in the world, and fisheries are an important growth sector to achieve national development objectives of poverty alleviation and eradication of malnutrition. This report uses a four-year time series of the national fisheries monitoring system PeskAAS to provide a baseline characterisation and current state and trajectories of the fisheries of Timor-Leste. 
+Timor-Leste has one of the highest rates of malnutrition in the world, and fisheries are an important growth sector to achieve national development objectives of poverty alleviation and eradication of malnutrition. This report uses a four-year time series of the national fisheries monitoring system PeskAAS to provide a baseline characterisation and current state and trajectories of the fisheries of Timor-Leste. 
 
-The national fisheries fleet of Timor-Leste is exclusively small scale, made up of \~XXX motorboats and XXX canoes. The climate and other livelihoods such as smallholder agriculture drive seasonal differences in fishing effort, with XX showing the highest effort, and XX the least. 
+The national fisheries fleet of Timor-Leste is exclusively small scale, made up of \~XXX motorboats and XXX canoes. The climate and other livelihoods such as smallholder agriculture drive seasonal differences in fishing effort, with XX showing the highest effort, and XX the least. 
 
-Fishing is predominantly nearshore, focused on fringing coral reef habitats with XX% of trips remaining within XXkm of the coast. Canoes are typically single person, and motorboats typically hold between one and twelve fishers depending on location and fishing type. The most common gear type is gill nets; the presence of large crocodiles throughout mainland Timor restricts most spearfishing activities to Atauro Island. 
+Fishing is predominantly nearshore, focused on fringing coral reef habitats with XX% of trips remaining within XXkm of the coast. Canoes are typically single person, and motorboats typically hold between one and twelve fishers depending on location and fishing type. The most common gear type is gill nets; the presence of large crocodiles throughout mainland Timor restricts most spearfishing activities to Atauro Island. 
 
-...Include average annual catch statistics, description of most productive municipalities, species catch compositions, catch values,   
+...Include average annual catch statistics, description of most productive municipalities, species catch compositions, catch values,   
 
 The results suggest that the SSF of Timor-Leste is quite resilient against the COVID-19 crisis. While experiencing a decline in the market value of the catch, it does not appear to have been as impactful as in other SSF, where a decrease in fishing effort has been measured as well. It is possible that the limited export and modest tourism sector of Timor-Leste have sheltered the fisheries from enduring the same shock that other SSF have. It will thus be important to put a significant amount of effort into preserving the resilience of the fisheries when promoting and developing the sector. This report contributes to filling the data gap present of small-scale fisheries, and hopefully incites an increase of descriptive analyses of SSF.
 
@@ -201,19 +237,19 @@ All data provision is voluntary, and collection is conducted with the permission
 
 # **Introduction**
 
-Small-scale fisheries (SSF) are an important part of the global fish production, contributing around half of the total annual catch of capture fisheries [(World Bank, Fao and WorldFish, 2012)](https://paperpile.com/c/Yw05cY/DjXI). Of the several million people engaged in SSF, over 90% live in developing countries and small island developing states (SIDSs), for whom it is an essential source of food and income [(Mills et al., 2011; World Bank, Fao and WorldFish, 2012)](https://paperpile.com/c/Yw05cY/YKV9+DjXI).  In  some high income countries, where fisheries have been intensively monitored with quantitative data systems and governed by the state, monitoring has in some cases led to effective adjustments to management and fishing capacity so that fish stocks are recovering and/or fished at sustainable levels [(Hilborn et al., 2020)](https://paperpile.com/c/Yw05cY/jqJXW). The majority of the global SSF fleet isactive in low and middle income countries, with 80% in Asia [(FAO, 2020)](https://paperpile.com/c/Yw05cY/QUhAD), but are under increasing pressure to conform to data-driven management strategies [(Béné and Friend, 2011; Islam, 2011; Kolding and Van Zwieten, 2011; Kolding et al., 2014; Macusi et al., 2020)](https://paperpile.com/c/Yw05cY/5Ig0+XyZV+ELrm+IdOG+W28I). Fisher knowledge is critical in framing and evaluating fisheries-dependent data in a social-ecological context but is still too rarely incorporated effectively into   governance [(Hind, 2014)](https://paperpile.com/c/Yw05cY/47zNE). 
+Small-scale fisheries (SSF) are an important part of the global fish production, contributing around half of the total annual catch of capture fisheries [(World Bank, Fao and WorldFish, 2012)](https://paperpile.com/c/Yw05cY/DjXI). Of the several million people engaged in SSF, over 90% live in developing countries and small island developing states (SIDSs), for whom it is an essential source of food and income [(Mills et al., 2011; World Bank, Fao and WorldFish, 2012)](https://paperpile.com/c/Yw05cY/YKV9+DjXI).  In  some high income countries, where fisheries have been intensively monitored with quantitative data systems and governed by the state, monitoring has in some cases led to effective adjustments to management and fishing capacity so that fish stocks are recovering and/or fished at sustainable levels [(Hilborn et al., 2020)](https://paperpile.com/c/Yw05cY/jqJXW). The majority of the global SSF fleet isactive in low and middle income countries, with 80% in Asia [(FAO, 2020)](https://paperpile.com/c/Yw05cY/QUhAD), but are under increasing pressure to conform to data-driven management strategies [(Béné and Friend, 2011; Islam, 2011; Kolding and Van Zwieten, 2011; Kolding et al., 2014; Macusi et al., 2020)](https://paperpile.com/c/Yw05cY/5Ig0+XyZV+ELrm+IdOG+W28I). Fisher knowledge is critical in framing and evaluating fisheries-dependent data in a social-ecological context but is still too rarely incorporated effectively into   governance [(Hind, 2014)](https://paperpile.com/c/Yw05cY/47zNE). 
 
 \
-Fisheries present a  significant  challenge  for  quantitative  data  systems  because  the fish  are mobile and mostly invisible (underwater),  so  management  relies  principally  on  fisheries-dependent  data  (i.e.   data collected of fishing activities and landings etc.). Nevertheless, the dispersed and  diverse  operations  of  fishing  activities  and  the challenges  inherent  in  measuring  and  understanding  trends  in  mobile stocks,  place  demands and limitations on both fisheries-dependent monitoring. This is especially true for small-scale fisheries (SSF), which  are  often  informal,  dynamic and even more widely dispersed. As such, scientific management strategies are often based on limited information; this can do more harm than good if there is also limited integration of local knowledge, or understanding the social and cultural elements [(Kolding and Van Zwieten, 2011)](https://paperpile.com/c/Yw05cY/ELrm). Filling these gaps in our knowledge should be a priority, as to determine their level of resilience against crises and, if necessary, strengthen them.
+Fisheries present a  significant  challenge  for  quantitative  data  systems  because  the fish  are mobile and mostly invisible (underwater),  so  management  relies  principally  on  fisheries-dependent  data  (i.e.   data collected of fishing activities and landings etc.). Nevertheless, the dispersed and  diverse  operations  of  fishing  activities  and  the challenges  inherent  in  measuring  and  understanding  trends  in  mobile stocks,  place  demands and limitations on both fisheries-dependent monitoring. This is especially true for small-scale fisheries (SSF), which  are  often  informal,  dynamic and even more widely dispersed. As such, scientific management strategies are often based on limited information; this can do more harm than good if there is also limited integration of local knowledge, or understanding the social and cultural elements [(Kolding and Van Zwieten, 2011)](https://paperpile.com/c/Yw05cY/ELrm). Filling these gaps in our knowledge should be a priority, as to determine their level of resilience against crises and, if necessary, strengthen them.
 
 \
-Despite the formidable economic, social and geographical barriers that small-scale fisheries communities face in using technological approaches, such as the cost of equipment and the digital literacy to operate it, there has been a dramatic expansion of the development and testing of ICTs for small-scale fisheries [(Fujita et al., 2018; Bradley et al., 2019; FAO and WorldFish, 2020)](https://paperpile.com/c/Yw05cY/7HQZ+yV1N+2xWO). The PeskAAS fisheries monitoring system has improved and automated rapid, low-cost and accurate data generation for fisheries in Timor-Leste [(Dam Lam et al., 2022)](https://paperpile.com/c/Yw05cY/AzxG); enabled new income streams for women in SSF communities in Bangladesh through digital financial inclusion [(FAO and WorldFish, 2020, chap. 7)](https://paperpile.com/c/Yw05cY/2xWO/?locator_label=chapter&locator=7); brought about improved social cohesion through community-supported fisheries in South Africa [(Nthane et al., 2020; Stone, 2020)](https://paperpile.com/c/Yw05cY/sMgu+pOzr). Some fisheries apps have been developed by external agencies in South India, namely Fisher Friend (M.S. Swaminathan Research Foundation) and mKrishi (Tata Consulting Services). Both these  apps  provide  an  early  warning  system  for  severe weather and potential fishing zones for fishers based on  wind,  weather  and  other  environmental  parameters provided  by  the  Indian  National  Centre  for  Ocean Information  Services  (INCOIS) [(Singh et al., 2016; FAO and WorldFish, 2020, chap. 3)](https://paperpile.com/c/Yw05cY/2xWO+QP23/?locator_label=chapter,page&locator=3,)\
+Despite the formidable economic, social and geographical barriers that small-scale fisheries communities face in using technological approaches, such as the cost of equipment and the digital literacy to operate it, there has been a dramatic expansion of the development and testing of ICTs for small-scale fisheries [(Fujita et al., 2018; Bradley et al., 2019; FAO and WorldFish, 2020)](https://paperpile.com/c/Yw05cY/7HQZ+yV1N+2xWO). The PeskAAS fisheries monitoring system has improved and automated rapid, low-cost and accurate data generation for fisheries in Timor-Leste [(Dam Lam et al., 2022)](https://paperpile.com/c/Yw05cY/AzxG); enabled new income streams for women in SSF communities in Bangladesh through digital financial inclusion [(FAO and WorldFish, 2020, chap. 7)](https://paperpile.com/c/Yw05cY/2xWO/?locator_label=chapter&locator=7); brought about improved social cohesion through community-supported fisheries in South Africa [(Nthane et al., 2020; Stone, 2020)](https://paperpile.com/c/Yw05cY/sMgu+pOzr). Some fisheries apps have been developed by external agencies in South India, namely Fisher Friend (M.S. Swaminathan Research Foundation) and mKrishi (Tata Consulting Services). Both these  apps  provide  an  early  warning  system  for  severe weather and potential fishing zones for fishers based on  wind,  weather  and  other  environmental  parameters provided  by  the  Indian  National  Centre  for  Ocean Information  Services  (INCOIS) [(Singh et al., 2016; FAO and WorldFish, 2020, chap. 3)](https://paperpile.com/c/Yw05cY/2xWO+QP23/?locator_label=chapter,page&locator=3,)\
 
-Timor-Leste, also known as East Timor, is a SIDS in Southeast Asia. The official languages are Portuguese and Tetum, but there are many other indigenous languages in use [(Taylor-Leech, 2009)](https://paperpile.com/c/Yw05cY/nOaa). It is at long-term high risk from the COVID-19 crisis due to its fragile economic and health conditions [(CARE, 2020)](https://paperpile.com/c/Yw05cY/yQgL). The country has only recently been declared a sovereign state by the United Nations in May 2002, after having suffered two brutal civil wars in 1979 and 1999 and a 24-year long occupation by Indonesia [(Braithwaite, Charlesworth and Soares, 2012; Ingram, Kent and McWilliam, 2015)](https://paperpile.com/c/Yw05cY/K6Lc+d9cp). These calamities have left the country with high poverty rates, poor health services and infrastructure, and 36% of the population experiencing chronic food insecurity due to low quality and quantities of food intake [(Casado and Alonso, 2019; National Directorate of Food Security and Cooperation, 2019; CARE, 2020)](https://paperpile.com/c/Yw05cY/yQgL+Qddk+SHFf). While during the Indonesian occupation the commercial fishery played a significant role in the economy of Timor-Leste, after the civil war in 1999 this completely plummeted as the infrastructure of the country was destroyed [(Barbosa and Booth, 2009)](https://paperpile.com/c/Yw05cY/F8V3). Hereafter, the SSF became the dominant fishery in Timor-Leste. Presently, the fish consumption of the Timorese population is low, both in the coastal communities as well as in the inland areas (17 and 5.2 kg/capita/year, respectively), especially compared to other SIDS in the Pacific (30--118 kg/capita/year in Melanesia, 62--115 kg in Micronesia and 50--146 kg in Polynesia) [(Mills et al., 2013; FAO, 2014; López Angarita et al., 2019)](https://paperpile.com/c/Yw05cY/WbAw+Al53+DYZP). Agriculture is responsible for most of the food production, with 90% of rural households engaged in it [(FAO, 2015; Ximenes et al., 2018)](https://paperpile.com/c/Yw05cY/FlVv+SVne). Most families involved in fishing have diverse livelihoods, where most of their time and energy is spent on agriculture and livestock farming [(Mills et al., 2013)](https://paperpile.com/c/Yw05cY/DYZP), but these livelihoods are dynamic and vary according to season and climate [(Mills et al., 2017)](https://paperpile.com/c/Yw05cY/SKw9X). \
+Timor-Leste, also known as East Timor, is a SIDS in Southeast Asia. The official languages are Portuguese and Tetum, but there are many other indigenous languages in use [(Taylor-Leech, 2009)](https://paperpile.com/c/Yw05cY/nOaa). It is at long-term high risk from the COVID-19 crisis due to its fragile economic and health conditions [(CARE, 2020)](https://paperpile.com/c/Yw05cY/yQgL). The country has only recently been declared a sovereign state by the United Nations in May 2002, after having suffered two brutal civil wars in 1979 and 1999 and a 24-year long occupation by Indonesia [(Braithwaite, Charlesworth and Soares, 2012; Ingram, Kent and McWilliam, 2015)](https://paperpile.com/c/Yw05cY/K6Lc+d9cp). These calamities have left the country with high poverty rates, poor health services and infrastructure, and 36% of the population experiencing chronic food insecurity due to low quality and quantities of food intake [(Casado and Alonso, 2019; National Directorate of Food Security and Cooperation, 2019; CARE, 2020)](https://paperpile.com/c/Yw05cY/yQgL+Qddk+SHFf). While during the Indonesian occupation the commercial fishery played a significant role in the economy of Timor-Leste, after the civil war in 1999 this completely plummeted as the infrastructure of the country was destroyed [(Barbosa and Booth, 2009)](https://paperpile.com/c/Yw05cY/F8V3). Hereafter, the SSF became the dominant fishery in Timor-Leste. Presently, the fish consumption of the Timorese population is low, both in the coastal communities as well as in the inland areas (17 and 5.2 kg/capita/year, respectively), especially compared to other SIDS in the Pacific (30--118 kg/capita/year in Melanesia, 62--115 kg in Micronesia and 50--146 kg in Polynesia) [(Mills et al., 2013; FAO, 2014; López Angarita et al., 2019)](https://paperpile.com/c/Yw05cY/WbAw+Al53+DYZP). Agriculture is responsible for most of the food production, with 90% of rural households engaged in it [(FAO, 2015; Ximenes et al., 2018)](https://paperpile.com/c/Yw05cY/FlVv+SVne). Most families involved in fishing have diverse livelihoods, where most of their time and energy is spent on agriculture and livestock farming [(Mills et al., 2013)](https://paperpile.com/c/Yw05cY/DYZP), but these livelihoods are dynamic and vary according to season and climate [(Mills et al., 2017)](https://paperpile.com/c/Yw05cY/SKw9X). \
 
-WorldFish is a research institution focused on generating new knowledge to alleviate poverty and eliminate malnutrition by harnessing the potential of aquatic food systems. In 2016, as part of the Fisheries Sector Support Programme funded by Norway, WorldFish piloted a new catch and effort monitoring program, called PeskAAS, to generate new information about catch and effort of the small-scale fishing fleet [(Tilley, Dos Reis Lopes and Wilkinson, 2020)](https://paperpile.com/c/Yw05cY/Ywfq). PeskAAS is a pseudo-acronym, combining the Tetum word for fisheries (peskas) and the abbreviation for Automated Analytics System. It is an interactive web-hosted application in which one can access databases containing catch and trip records, with the goal of facilitating data exploration and decision-making processes for small-scale fisheries. In 2019, PeskAAS was formally adopted by the government as the official national fisheries monitoring system of Timor-Leste, and now forms part of the fisheries management process. 
+WorldFish is a research institution focused on generating new knowledge to alleviate poverty and eliminate malnutrition by harnessing the potential of aquatic food systems. In 2016, as part of the Fisheries Sector Support Programme funded by Norway, WorldFish piloted a new catch and effort monitoring program, called PeskAAS, to generate new information about catch and effort of the small-scale fishing fleet [(Tilley, Dos Reis Lopes and Wilkinson, 2020)](https://paperpile.com/c/Yw05cY/Ywfq). PeskAAS is a pseudo-acronym, combining the Tetum word for fisheries (peskas) and the abbreviation for Automated Analytics System. It is an interactive web-hosted application in which one can access databases containing catch and trip records, with the goal of facilitating data exploration and decision-making processes for small-scale fisheries. In 2019, PeskAAS was formally adopted by the government as the official national fisheries monitoring system of Timor-Leste, and now forms part of the fisheries management process. 
 
-This report aims to summarise and analyse the first 3 years of data collected by the PeskAAS national fisheries monitoring system of Timor-Leste to provide a series of benchmarks for the fisheries sector against which trends and trajectories can be compared in years to come. Furthermore, our report is intended to provide easily accessible and interpretable information for fisheries stakeholders (fishers, government, NGOs/CSOs) to guide new development and capacity building initiatives in the fisheries sector. 
+This report aims to summarise and analyse the first 3 years of data collected by the PeskAAS national fisheries monitoring system of Timor-Leste to provide a series of benchmarks for the fisheries sector against which trends and trajectories can be compared in years to come. Furthermore, our report is intended to provide easily accessible and interpretable information for fisheries stakeholders (fishers, government, NGOs/CSOs) to guide new development and capacity building initiatives in the fisheries sector. 
 
 While the impacts of the COVID-19 pandemic on fisheries is not a major focus of this report, the pandemic started during this data time series, so this is used as a reference point in certain analyses and a short discussion is included.
 
@@ -221,7 +257,7 @@ While the impacts of the COVID-19 pandemic on fisheries is not a major focus of 
 
 Timor-Leste is surrounded by Indonesia to the west, north and east, and Australia to the south with the Timor Sea in between (fig. \@ref(fig:timormap)). It has a coastline of 783 km and a total land area of around 14,954 km2 [(Lopes et al., 2019)](https://paperpile.com/c/Yw05cY/5UXn). Atauro island, with a land area of around 140km2, has a population of around 10,000 [(General Directorate of Statistics, 2015; Lopes et al., 2019)](https://paperpile.com/c/Yw05cY/vg6Z+5UXn). The country counts around 1.3 million citizens which is expected to triple by 2050 [(Molyneux et al., 2012)](https://paperpile.com/c/Yw05cY/qknt). Most cities, including the capital Dili, are located on the north coast. Consequently, this is where the majority of the people are situated: over 60% of the total population lives on the north coast and around 20% on the south coast (General Directorate of Statistics, 2015). Most economic activity is centred around Dili, and the rural population experience higher poverty rates than people living in urban areas (Moxham & Carapic, 2013).
 
-It has a tropical climate, with temperatures at the coast ranging from 25 to 30 degrees Celsius all year round and with a pronounced wet (December to May) and dry season (June to November) (fig. \@ref(fig:timorclimate)) [(Timor-Leste National Directorate of Meteorology and Geophysics, Australian Bureau of Meteorology and Commonwealth Scientific and Industrial Research Organisation (CSIRO), 2015)](https://paperpile.com/c/Yw05cY/T09Z). This seasonality pattern of the rainfall experiences between-year fluctuations, caused by the El Niño-Southern Oscillation (ENSO) and the Indian Ocean Dipole (IOD) [(Australian Bureau of Meteorology and Csiro, 2014)](https://paperpile.com/c/Yw05cY/1puf). The mountain range separating the northern coast of the southern (fig. \@ref(fig:timormap)) causes different rainfall patterns on the two coasts [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). The seas on the south coast are rougher than on the north coast due to cyclones coming from the Indian Ocean. The south coast has a shallow slope, while the north coast has a very steep slope, quickly descending to several kilometres depth (fig. \@ref(fig:timorbat)). The coral reefs are predominantly fringing reefs, located for the most part on the north coast and around Atauro island [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). 
+It has a tropical climate, with temperatures at the coast ranging from 25 to 30 degrees Celsius all year round and with a pronounced wet (December to May) and dry season (June to November) (fig. \@ref(fig:timorclimate)) [(Timor-Leste National Directorate of Meteorology and Geophysics, Australian Bureau of Meteorology and Commonwealth Scientific and Industrial Research Organisation (CSIRO), 2015)](https://paperpile.com/c/Yw05cY/T09Z). This seasonality pattern of the rainfall experiences between-year fluctuations, caused by the El Niño-Southern Oscillation (ENSO) and the Indian Ocean Dipole (IOD) [(Australian Bureau of Meteorology and Csiro, 2014)](https://paperpile.com/c/Yw05cY/1puf). The mountain range separating the northern coast of the southern (fig. \@ref(fig:timormap)) causes different rainfall patterns on the two coasts [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). The seas on the south coast are rougher than on the north coast due to cyclones coming from the Indian Ocean. The south coast has a shallow slope, while the north coast has a very steep slope, quickly descending to several kilometres depth (fig. \@ref(fig:timorbat)). The coral reefs are predominantly fringing reefs, located for the most part on the north coast and around Atauro island [(Asian Development Bank, 2014)](https://paperpile.com/c/Yw05cY/Bd1U). 
 
 For the purpose of this study, the coastal municipalities were grouped into three statistical areas: Atauro island, the north coast, and the south coast (fig. \@ref(fig:timormuni): grey, red, and light blue, respectively). The landing sites of Manatuto and Lautém are located on the north coast and have therefore been assigned to the north coast region, even though the municipalities border both coasts. The municipalities Ermera and Aileu do not have a coastline and are thus not included. These areas were chosen due to their difference in rainfall pattern, wave activity, marine landscape, and demographics mentioned above.
 
@@ -230,7 +266,6 @@ For the purpose of this study, the coastal municipalities were grouped into thre
 ```{r timormap, echo=FALSE, message=FALSE, warning=FALSE,fig.align='left', fig.cap='(ref:timormap)'}
 
 knitr::include_graphics("timor_maps/timor_map.png")
-
 ```
 
 (ref:timorclimate) **Seasonal rainfall and sea surface temperature in Timor-Leste.** Seasonal rainfall and sea surface temperature in Timor-Leste, measured in Dili. Source: Timor-Leste National Directorate of Meteorology and Geophysics et al. (2015).
@@ -265,7 +300,7 @@ The differences seen in the characteristics of the fishing boats between the are
 Table 1: **Total number of sampled and registered fishing boats per region.** Information on the number of registered fishing boats was obtained from the Timor-Leste Ministry of Agriculture and Fisheries (2018).
 
 +:-------------:+:-------------:+:-------------------------:+:-------------:+
-| Region        | Sampled boats | Registered fishing boats  | Boats sampled |
+| Region        | Sampled boats | Registered fishing boats  | Boats sampled |
 +---------------+---------------+---------------------------+---------------+
 | Atauro Island | 89            | 348                       | 25.6%         |
 +---------------+---------------+---------------------------+---------------+
@@ -283,7 +318,7 @@ Table 2: Vessels reporting catch and/or tracking data to PeskAAS. Information on
 |                 |                   |               |                     |                            |                          |                           |
 |                 |                   |               |                     |                            | Fibreglass/Wood /Unknown | Inboard/Outboard /Unknown |
 +:===============:+:=================:+:=============:+:===================:+:==========================:+:========================:+:=========================:+
-| **Atauro**      | 89                | Motorboat     | 48 (54%)            | 8.0                        | 3 (6.3%) /               | 2 (4.2%) /                |
+| **Atauro**      | 89                | Motorboat     | 48 (54%)            | 8.0                        | 3 (6.3%) /               | 2 (4.2%) /                |
 |                 |                   |               |                     |                            |                          |                           |
 |                 |                   |               |                     |                            | 24 (50.0%) /             | 46 (95.8%) /              |
 |                 |                   |               |                     |                            |                          |                           |
@@ -291,13 +326,13 @@ Table 2: Vessels reporting catch and/or tracking data to PeskAAS. Information on
 +-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
 | \               | Paddle canoes     | 41 (46%)      | 5.0                 | 1 (2.4%) /                 | NA                       |                           |
 |                 |                   |               |                     |                            |                          |                           |
-|                 |                   |               |                     | 31 (75.6%) /               |                          |                           |
+|                 |                   |               |                     | 31 (75.6%) /               |                          |                           |
 |                 |                   |               |                     |                            |                          |                           |
 |                 |                   |               |                     | 9 (22.0%)                  |                          |                           |
 +-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
-| **North Coast** | 129               | Motorboat     | 103 (80%)           | 6.0                        | 34 (33.0%) /             | 35 (34.0%) /              |
+| **North Coast** | 129               | Motorboat     | 103 (80%)           | 6.0                        | 34 (33.0%) /             | 35 (34.0%) /              |
 |                 |                   |               |                     |                            |                          |                           |
-|                 |                   |               |                     |                            | 55 (53.4%) /             | 57 (55.3%) /              |
+|                 |                   |               |                     |                            | 55 (53.4%) /             | 57 (55.3%) /              |
 |                 |                   |               |                     |                            |                          |                           |
 |                 |                   |               |                     |                            | 14 (13.6%)               | 11 (10.7%)                |
 +-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
@@ -307,7 +342,7 @@ Table 2: Vessels reporting catch and/or tracking data to PeskAAS. Information on
 |                 |                   |               |                     |                            |                          |                           |
 |                 |                   |               |                     | 5 (19.2%)                  |                          |                           |
 +-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
-| **South Coast** | 105               | Motorboat     | 30 (29%)            | 5.0                        | 4 (13.3%) /              | 12 (40.0%) /              |
+| **South Coast** | 105               | Motorboat     | 30 (29%)            | 5.0                        | 4 (13.3%) /              | 12 (40.0%) /              |
 |                 |                   |               |                     |                            |                          |                           |
 |                 |                   |               |                     |                            | 20 (66.7%) /             | 14 (46.7%) /              |
 |                 |                   |               |                     |                            |                          |                           |
@@ -319,9 +354,9 @@ Table 2: Vessels reporting catch and/or tracking data to PeskAAS. Information on
 |                 |                   |               |                     |                            |                          |                           |
 |                 |                   |               |                     | 10 (13.3%)                 |                          |                           |
 +-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
-| **Total**       | 323               | Motorboat     | 181 (56%)           | 6.5                        | 41 (22.3%) /             | 49 (26.6%) /              |
+| **Total**       | 323               | Motorboat     | 181 (56%)           | 6.5                        | 41 (22.3%) /             | 49 (26.6%) /              |
 |                 |                   |               |                     |                            |                          |                           |
-|                 |                   |               |                     |                            | 99 (53.8%) /             | 117 (63.6%) /             |
+|                 |                   |               |                     |                            | 99 (53.8%) /             | 117 (63.6%) /             |
 |                 |                   |               |                     |                            |                          |                           |
 |                 |                   |               |                     |                            | 44 (23.9%)               | 18 (9.8%)                 |
 +-----------------+-------------------+---------------+---------------------+----------------------------+--------------------------+---------------------------+
@@ -340,18 +375,20 @@ Gill nets are the most used gear on the North Coast, including Atauro island (fi
 
 ```{r IRIGearGroups, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=9, fig.cap='(ref:IRIGearGroups)'}
 # create base dataset for plotting
-plot_dat <- 
+plot_dat <-
   report_data %>%
-  dplyr::group_by(trip_id, fish_group) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   catch_taxon = dplyr::first(catch_taxon),
-                   gear_type = dplyr::first(gear_type),
-                   individuals = sum(individuals, na.rm = T),
-                   weight = sum(weight, na.rm = T)) %>% 
+  dplyr::group_by(trip_id, fish_group) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    catch_taxon = dplyr::first(catch_taxon),
+    gear_type = dplyr::first(gear_type),
+    individuals = sum(individuals, na.rm = T),
+    weight = sum(weight, na.rm = T)
+  ) %>%
   dplyr::group_by(area, gear_type) %>%
   dplyr::summarise(
-    weight = sum(weight,na.rm = T),
-    individuals = sum(individuals,na.rm = T),
+    weight = sum(weight, na.rm = T),
+    individuals = sum(individuals, na.rm = T),
     obs = dplyr::n()
   ) %>%
   dplyr::group_by(area) %>%
@@ -365,29 +402,29 @@ plot_dat <-
     area = area,
     gear_type = as.factor(gear_type),
     weight_perc = weight / weight_tot * 100,
-    individuals_perc = (individuals / individuals_tot * 100)*-1,
-    obs_perc = as.factor(round(obs / obs_tot * 100, 0))
-  ) %>%
-  tidyr::pivot_longer(-c(area, gear_type, obs_perc)) %>%
-  dplyr::ungroup() 
+    individuals_perc = (individuals / individuals_tot * 100),
+    obs_perc = round(obs / obs_tot * 100, 1),
+    iri = (weight_perc + individuals_perc) * obs_perc
+  )
 
-
-all_plots <- purrr::map(unique(plot_dat$area), ~ 
-                          plot_bar_grouped(data = plot_dat,
-                                           filter_var = .x,
-                                           fill_var = "gear_type",
-                                           fill_title = "Gear type",
-                                           facet_var = "area",
-                                           fill_scale = gear_colors,
-                                           legend_rows = 3))
+all_plots <- purrr::map(unique(plot_dat$area), ~
+plot_iri(
+  data = plot_dat,
+  filter_var = .x,
+  fill_var = "gear_type",
+  fill_title = "Gear type",
+  facet_var = "area",
+  fill_scale = gear_colors,
+  legend_rows = 3
+))
 
 main_plot <- cowplot::plot_grid(plotlist = all_plots, ncol = 3, align = "hv")
 
 cowplot::plot_grid(main_plot,
-                   dummy_plot_legend,
-                   ncol = 1, nrow=2,
-                   rel_heights = c(3, 0.75))
-
+  dummy_plot_legend,
+  ncol = 1, nrow = 2,
+  rel_heights = c(3, 0.75)
+)
 ```
 
 # **Effort and landings**
@@ -424,90 +461,114 @@ The trip effort (fisher-hours) of the three regions appears to be quite similar 
 
 ```{r TripEffort, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7, fig.width=6.5, fig.cap='(ref:TripEffort)'}
 
-p1 <- 
+p1 <-
   report_data %>%
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
-                effort = n_fishers * landing_survey_trip_duration) %>% 
-  dplyr::group_by(area, month_period) %>% 
-  dplyr::summarise(mean = mean(effort, na.rm =TRUE),
-                   sd = sd(effort,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal(13)+
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    effort = n_fishers * landing_survey_trip_duration
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean = mean(effort, na.rm = TRUE),
+    sd = sd(effort, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal(13) +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.4)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA)) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2018-01-01"), NA)) +
-  theme(legend.position = "top")+
-  labs(x = "",
-       y = "Fishermen x trip hours",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.4) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA)
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2018-01-01"), NA)
+  ) +
+  theme(legend.position = "top") +
+  labs(
+    x = "",
+    y = "Fishermen x trip hours",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
 
-p2 <- 
+p2 <-
   report_data %>%
-  dplyr::filter(n_fishers > 0 & individuals>0) %>% 
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
-                effort = n_fishers * landing_survey_trip_duration) %>% 
-  dplyr::group_by(area, month_period) %>% 
-  dplyr::summarise(mean = mean(effort, na.rm =TRUE),
-                   sd = sd(effort,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal(13)+
+  dplyr::filter(n_fishers > 0 & individuals > 0) %>%
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    effort = n_fishers * landing_survey_trip_duration
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean = mean(effort, na.rm = TRUE),
+    sd = sd(effort, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal(13) +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.4)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA)) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2018-01-01"), NA)) +
-  facet_grid(area~.,scales = "free")+
-  theme(legend.position = "none",
-        strip.background = element_blank(),
-        strip.text = element_blank())+
-  labs(x = "Date",
-       y = "Fishermen x trip hours",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.4) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA)
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2018-01-01"), NA)
+  ) +
+  facet_grid(area ~ ., scales = "free") +
+  theme(
+    legend.position = "none",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
+  labs(
+    x = "Date",
+    y = "Fishermen x trip hours",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
 
-cowplot::plot_grid(p1,p2,
-                   ncol=1,
-                   rel_heights = c(1,0.9),
-                   labels = "auto")
-
+cowplot::plot_grid(p1, p2,
+  ncol = 1,
+  rel_heights = c(1, 0.9),
+  labels = "auto"
+)
 ```
 
 ## **Catch per unit effort**
 
-For this report, a standardised catch per unit effort (CPUE) was used, where the effort was standardised to one fisher and one trip hour (fisher-hour). The catch was calculated in kilograms. After 2019 the weight calculation was done on species level, while before 2019 it was more general.  
+For this report, a standardised catch per unit effort (CPUE) was used, where the effort was standardised to one fisher and one trip hour (fisher-hour). The catch was calculated in kilograms. After 2019 the weight calculation was done on species level, while before 2019 it was more general.  
 
 The CPUE (kg) of Atauro island and the north coast are quite similar, whereas the north coast has more high peaks (fig. \@ref(fig:CatchEffort)). The south coast appears to generally have a lower CPUE (kg) than Atauro island and the north coast. The CPUE (kg) of Atauro island seems to increase over time, while the north and south coasts show no apparent change of CPUE over time.
 
@@ -515,89 +576,116 @@ The CPUE (kg) of Atauro island and the north coast are quite similar, whereas th
 
 ```{r CatchEffort, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7, fig.width=6.5, fig.cap='(ref:CatchEffort)'}
 
-p1 <- 
+p1 <-
   report_data %>%
-  dplyr::filter(n_fishers > 0 & individuals>0) %>% 
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
-                weight = weight/1000,
-                catch_effort = (weight / n_fishers) / landing_survey_trip_duration) %>% 
-  dplyr::group_by(area, month_period) %>% 
-  dplyr::summarise(mean = mean(catch_effort, na.rm =TRUE),
-                   sd = sd(catch_effort,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal(13)+
+  dplyr::filter(n_fishers > 0 & individuals > 0) %>%
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    weight = weight / 1000,
+    catch_effort = (weight / n_fishers) / landing_survey_trip_duration
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean = mean(catch_effort, na.rm = TRUE),
+    sd = sd(catch_effort, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal(13) +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.4)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA)) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2018-01-01"), NA)) +
-  theme(legend.position = "top",
-        strip.background = element_blank(),
-        strip.text = element_blank())+
-  labs(x = "",
-       y = "Weight (Kg) / fisher-hour",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.4) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA)
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2018-01-01"), NA)
+  ) +
+  theme(
+    legend.position = "top",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
+  labs(
+    x = "",
+    y = "Weight (Kg) / fisher-hour",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
 
-p2 <- 
+p2 <-
   report_data %>%
-  dplyr::filter(n_fishers > 0 & individuals>0) %>% 
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
-                weight = weight/1000,
-                catch_effort = (weight / n_fishers) / landing_survey_trip_duration) %>% 
-  dplyr::group_by(area, month_period) %>% 
-  dplyr::summarise(mean = mean(catch_effort, na.rm =TRUE),
-                   sd = sd(catch_effort,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal(13)+
+  dplyr::filter(n_fishers > 0 & individuals > 0) %>%
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    weight = weight / 1000,
+    catch_effort = (weight / n_fishers) / landing_survey_trip_duration
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean = mean(catch_effort, na.rm = TRUE),
+    sd = sd(catch_effort, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal(13) +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.4)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA)) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2018-01-01"), NA)) +
-  facet_grid(area~.,scales = "free")+
-  theme(legend.position = "",
-        strip.background = element_blank(),
-        strip.text = element_blank())+
-  labs(x = "Date",
-       y = "Weight (Kg) / fisher-hour",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.4) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA)
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2018-01-01"), NA)
+  ) +
+  facet_grid(area ~ ., scales = "free") +
+  theme(
+    legend.position = "",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
+  labs(
+    x = "Date",
+    y = "Weight (Kg) / fisher-hour",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
 
-cowplot::plot_grid(p1,p2,
-                   ncol=1,
-                   rel_heights = c(1,0.9),
-                   labels = "auto")
+cowplot::plot_grid(p1, p2,
+  ncol = 1,
+  rel_heights = c(1, 0.9),
+  labels = "auto"
+)
 ```
 
 ## **Catch composition**
@@ -620,18 +708,20 @@ This section presents information on the composition of fisheries catches across
 ```{r IRIFishGroups, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=9, fig.cap='(ref:IRIFishGroups)'}
 # create base dataset for plotting
 
-plot_dat <- 
-report_data %>%
-  dplyr::group_by(trip_id, fish_group) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   catch_taxon = dplyr::first(catch_taxon),
-                   gear_type = dplyr::first(gear_type),
-                   individuals = sum(individuals, na.rm = T),
-                   weight = sum(weight, na.rm = T)) %>% 
+plot_dat <-
+  report_data %>%
+  dplyr::group_by(trip_id, fish_group) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    catch_taxon = dplyr::first(catch_taxon),
+    gear_type = dplyr::first(gear_type),
+    individuals = sum(individuals, na.rm = T),
+    weight = sum(weight, na.rm = T)
+  ) %>%
   dplyr::group_by(area, fish_group) %>%
   dplyr::summarise(
-    weight = sum(weight,na.rm = T),
-    individuals = sum(individuals,na.rm = T),
+    weight = sum(weight, na.rm = T),
+    individuals = sum(individuals, na.rm = T),
     obs = dplyr::n()
   ) %>%
   dplyr::group_by(area) %>%
@@ -645,28 +735,28 @@ report_data %>%
     area = area,
     fish_group = as.factor(fish_group),
     weight_perc = weight / weight_tot * 100,
-    individuals_perc = (individuals / individuals_tot * 100)*-1,
-    obs_perc = as.factor(round(obs / obs_tot * 100, 0))
-  ) %>%
-  tidyr::pivot_longer(-c(area, fish_group, obs_perc)) %>%
-  dplyr::ungroup() 
+    individuals_perc = (individuals / individuals_tot * 100),
+    obs_perc = round(obs / obs_tot * 100, 1),
+    iri = (weight_perc + individuals_perc) * obs_perc
+  )
 
-
-all_plots <- purrr::map(unique(plot_dat$area), ~ 
-                          plot_bar_grouped(data = plot_dat,
-                                           filter_var = .x,
-                                           fill_var = "fish_group",
-                                           facet_var = "area",
-                                           fill_scale = fish_colors,
-                                           fill_title = "Functional group"))
+all_plots <- purrr::map(unique(plot_dat$area), ~
+plot_iri(
+  data = plot_dat,
+  filter_var = .x,
+  fill_var = "fish_group",
+  facet_var = "area",
+  fill_scale = fish_colors,
+  fill_title = "Functional group"
+))
 
 main_plot <- cowplot::plot_grid(plotlist = all_plots, ncol = 3, align = "hv")
 
 cowplot::plot_grid(main_plot,
-                   dummy_plot_legend,
-                   ncol = 1, nrow=2,
-                   rel_heights = c(3, 0.75))
-
+  dummy_plot_legend,
+  ncol = 1, nrow = 2,
+  rel_heights = c(3, 0.75)
+)
 ```
 
 ### **Catch composition by gear type**
@@ -677,18 +767,20 @@ This section presents information on the composition of catches according to eac
 
 ```{r IRIFishGear, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=9, fig.cap='(ref:IRIFishGear)'}
 # create base dataset for plotting
-plot_dat <- 
+plot_dat <-
   report_data %>%
-    dplyr::group_by(trip_id, fish_group) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   catch_taxon = dplyr::first(catch_taxon),
-                   gear_type = dplyr::first(gear_type),
-                   individuals = sum(individuals, na.rm = T),
-                   weight = sum(weight, na.rm = T)) %>% 
+  dplyr::group_by(trip_id, fish_group) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    catch_taxon = dplyr::first(catch_taxon),
+    gear_type = dplyr::first(gear_type),
+    individuals = sum(individuals, na.rm = T),
+    weight = sum(weight, na.rm = T)
+  ) %>%
   dplyr::group_by(fish_group, gear_type) %>%
   dplyr::summarise(
-    weight = sum(weight,na.rm = T),
-    individuals = sum(individuals,na.rm = T),
+    weight = sum(weight, na.rm = T),
+    individuals = sum(individuals, na.rm = T),
     obs = dplyr::n()
   ) %>%
   dplyr::group_by(gear_type) %>%
@@ -702,28 +794,28 @@ plot_dat <-
     gear_type = gear_type,
     fish_group = as.factor(fish_group),
     weight_perc = weight / weight_tot * 100,
-    individuals_perc = (individuals / individuals_tot * 100)*-1,
-    obs_perc = as.factor(round(obs / obs_tot * 100, 1))
-  ) %>%
-  tidyr::pivot_longer(-c(gear_type, fish_group, obs_perc)) %>%
-  dplyr::ungroup() 
+    individuals_perc = (individuals / individuals_tot * 100),
+    obs_perc = round(obs / obs_tot * 100, 1),
+    iri = (weight_perc + individuals_perc) * obs_perc
+  )
 
-
-all_plots <- purrr::map(c("gill net", "long line", "hand line", "spear gun"), ~ 
-                          plot_bar_grouped(data = plot_dat,
-                                           filter_var = .x,
-                                           fill_var = "fish_group",
-                                           facet_var = "gear_type",
-                                           fill_scale = fish_colors,
-                                           fill_title = "Functional group"))
+all_plots <- purrr::map(c("gill net", "long line", "hand line", "spear gun"), ~
+plot_iri(
+  data = plot_dat,
+  filter_var = .x,
+  fill_var = "fish_group",
+  facet_var = "gear_type",
+  fill_scale = fish_colors,
+  fill_title = "Functional group"
+))
 
 main_plot <- cowplot::plot_grid(plotlist = all_plots, ncol = 2, nrow = 2, align = "hv")
 
 cowplot::plot_grid(main_plot,
-                   dummy_plot_legend,
-                   ncol = 1, nrow=2,
-                   rel_heights = c(3, 0.75))
-
+  dummy_plot_legend,
+  ncol = 1, nrow = 2,
+  rel_heights = c(3, 0.75)
+)
 ```
 
 ### **Length composition of functional groups**
@@ -735,25 +827,32 @@ The small pelagics and demersals, and the cephalopods caught on Atauro island ap
 ```{r LengthArea, echo=FALSE, message=FALSE, warning=FALSE, fig.height=6, fig.width=6, fig.cap='(ref:LengthArea)'}
 
 report_data %>%
-  dplyr::filter(individuals>0) %>% 
+  dplyr::filter(individuals > 0) %>%
   ggplot(aes(area, length, fill = area)) +
-  facet_wrap(.~fish_group, scales = "free", ncol = 3)+
-  theme_minimal(13)+
-  geom_violin(alpha = 0.6, size = 0.1, color = "transparent", scale = "width", trim = F, adjust = 1.5)+
-  stat_summary(fun.data=mean_sdl,
-               mult=1,
-               size = 0.1,
-               geom="pointrange")+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  labs(y = "Length (cm)",
-       x = "",
-       fill = "")+
-  theme(legend.position = "top",
-        axis.text.x = element_blank())+
-  scale_y_continuous(limits = c(0, NA),
-                     expand = c(0,0))
-
+  facet_wrap(. ~ fish_group, scales = "free", ncol = 3) +
+  theme_minimal(13) +
+  geom_violin(alpha = 0.6, size = 0.1, color = "transparent", scale = "width", trim = F, adjust = 1.5) +
+  stat_summary(
+    fun.data = mean_sdl,
+    mult = 1,
+    size = 0.1,
+    geom = "pointrange"
+  ) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  labs(
+    y = "Length (cm)",
+    x = "",
+    fill = ""
+  ) +
+  theme(
+    legend.position = "top",
+    axis.text.x = element_blank()
+  ) +
+  scale_y_continuous(
+    limits = c(0, NA),
+    expand = c(0, 0)
+  )
 ```
 
 ## **Total monthly landings**
@@ -762,7 +861,7 @@ The total monthly landings was calculated using the mean monthly CPUE (in metric
 
 The estimated total monthly landings (tons) of the north coast are generally higher and with more peaks than on Atauro island and the south coast (fig. \@ref(fig:MonthlyCatch)). This difference between the areas is largely driven by the difference in trips taken per week. The high peaks observed at the north coast are also seen in the CPUE, and could be actual windfall catches of sardines, which are the primary species of small pelagics caught on the north coast. These fish often migrate in large schools, which can result in big hauls if one comes across such a school [(Hunnam et al., 2021)](https://paperpile.com/c/Yw05cY/sLRG). This hyporeport is strengthened by the fact that these observed high catches occur during the wet season, when sardines are mostly present [(Hunnam et al., 2021)](https://paperpile.com/c/Yw05cY/sLRG). The use of FADs could also play a role in the fluctuations present, as fishing near one increases the chances of encountering big schools of fish [(Tilley et al., 2019)](https://paperpile.com/c/Yw05cY/APpV).
 
-The landings seem to increase over time on the south coast, while remaining constant on Atauro island and north coast. The increase in landings observed on the south coast is likely due to the increase in trip effort. However, the first years of the south coast were poorly sampled (only two stations were sampled on the entire south coast up until May 2019), which could explain this trend. 
+The landings seem to increase over time on the south coast, while remaining constant on Atauro island and north coast. The increase in landings observed on the south coast is likely due to the increase in trip effort. However, the first years of the south coast were poorly sampled (only two stations were sampled on the entire south coast up until May 2019), which could explain this trend. 
 
 \
 
@@ -780,23 +879,27 @@ Fishing is for many households however not their only or even primary source of 
 
 ```{r WeekTrips, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=4.5, fig.cap='(ref:WeekTrips)'}
 
- report_data %>%
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   landing_date = dplyr::first(landing_date)) %>% 
-  dplyr::select(-trip_id) %>% 
-  dplyr::mutate(week = lubridate::week(landing_date),
-                month = lubridate::month(landing_date)) %>% 
-  dplyr::group_by(area, month, week) %>% 
-  dplyr::summarise(obs = dplyr::n()) %>% 
-  dplyr::ungroup() %>% 
+report_data %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    landing_date = dplyr::first(landing_date)
+  ) %>%
+  dplyr::select(-trip_id) %>%
+  dplyr::mutate(
+    week = lubridate::week(landing_date),
+    month = lubridate::month(landing_date)
+  ) %>%
+  dplyr::group_by(area, month, week) %>%
+  dplyr::summarise(obs = dplyr::n()) %>%
+  dplyr::ungroup() %>%
   ggplot() +
-  facet_grid(area~., scales = "free")+
-  theme_minimal(13)+
-  stat_smooth(mapping = aes(month, obs, fill = area, color = area),alpha = 0.2, size = 0.5, show.legend = FALSE)+
-  geom_boxplot(mapping = aes(as.factor(month), obs, fill = area, color = area), alpha = 0.3, size = 0.2)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
+  facet_grid(area ~ ., scales = "free") +
+  theme_minimal(13) +
+  stat_smooth(mapping = aes(month, obs, fill = area, color = area), alpha = 0.2, size = 0.5, show.legend = FALSE) +
+  geom_boxplot(mapping = aes(as.factor(month), obs, fill = area, color = area), alpha = 0.3, size = 0.2) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
   scale_x_discrete(labels = c(
     "1" = "Jan",
     "2" = "Feb",
@@ -810,15 +913,18 @@ Fishing is for many households however not their only or even primary source of 
     "10" = "Oct",
     "11" = "Nov",
     "12" = "Dec"
-  ))+
-  labs(y = "No.trips per week",
-       x = "Month",
-       fill = "")+
-  theme(legend.position = "top",
-        strip.background = element_blank(),
-        strip.text = element_blank())+
-   guides(colour = "none")
-
+  )) +
+  labs(
+    y = "No.trips per week",
+    x = "Month",
+    fill = ""
+  ) +
+  theme(
+    legend.position = "top",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
+  guides(colour = "none")
 ```
 
 (ref:WeekCatch) **Seasonality of total monthly catch (tons).** Box plots of the estimated total catch (tons) for every month (2018-2021) for Atauro island, north coast, and south coast. The y-axis has a free scale for each region. The dashed line shows the loess regression with 95% confidence intervals.
@@ -826,21 +932,23 @@ Fishing is for many households however not their only or even primary source of 
 ```{r WeekCatch, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=4.5, fig.cap='(ref:WeekCatch)'}
 
 report_data %>%
-  dplyr::filter(individuals > 0) %>% 
-  dplyr::mutate(week = lubridate::week(landing_date),
-                month = lubridate::month(landing_date),
-                weight = weight/1000000) %>% 
-  dplyr::group_by(area, month, week) %>% 
-  dplyr::summarise(weight = sum(weight, na.rm = T)) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::filter(weight >0) %>% 
+  dplyr::filter(individuals > 0) %>%
+  dplyr::mutate(
+    week = lubridate::week(landing_date),
+    month = lubridate::month(landing_date),
+    weight = weight / 1000000
+  ) %>%
+  dplyr::group_by(area, month, week) %>%
+  dplyr::summarise(weight = sum(weight, na.rm = T)) %>%
+  dplyr::ungroup() %>%
+  dplyr::filter(weight > 0) %>%
   ggplot() +
-  facet_grid(area~., scales = "free")+
-  theme_minimal(13)+
-  stat_smooth(mapping = aes(month, weight, fill = area, color = area),alpha = 0.2, size = 0.5, show.legend = FALSE)+
-  geom_boxplot(mapping = aes(as.factor(month), weight, fill = area, color = area), alpha = 0.3, size = 0.2)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
+  facet_grid(area ~ ., scales = "free") +
+  theme_minimal(13) +
+  stat_smooth(mapping = aes(month, weight, fill = area, color = area), alpha = 0.2, size = 0.5, show.legend = FALSE) +
+  geom_boxplot(mapping = aes(as.factor(month), weight, fill = area, color = area), alpha = 0.3, size = 0.2) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
   scale_x_discrete(labels = c(
     "1" = "Jan",
     "2" = "Feb",
@@ -854,13 +962,17 @@ report_data %>%
     "10" = "Oct",
     "11" = "Nov",
     "12" = "Dec"
-  ))+
-  labs(y = "Catch (tons) per month",
-       x = "Month",
-       fill = "")+
-  theme(legend.position = "top",
-        strip.background = element_blank(),
-        strip.text = element_blank())+
+  )) +
+  labs(
+    y = "Catch (tons) per month",
+    x = "Month",
+    fill = ""
+  ) +
+  theme(
+    legend.position = "top",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
   guides(colour = "none")
 ```
 
@@ -872,27 +984,26 @@ When looking at the data, the use of the catch and the market value, it is impor
 
 On average, 85.5% of the sampled catch on Atauro island is sold on the market, 14.1% is kept for own consumption and 0.4% is used for both. On the north coast, 66.2% goes to the market, 18.4% is used for own consumption and 15.4% is used for both. On the south coast 80.4% is sold on the market, 10.7% is kept for own consumption and 8.87% is used for both. On the temporal scale the market selling showed a slight increase in all the regions, and especially in Atauro, whereas own consumption and both trends were quite stable in all the regions (fig. \@ref(fig:Usage)).
 
-An interesting difference between the regions is that at the north coast a large part of the catch is documented as being used for both own consumption as well as being sold. While this is likely also the case on Atauro island and the south coast, it is not being documented in the same manner. Why there is this difference in documenting between the regions is not clear. It could be that the fishers of the north coast are more realistic with the outcome of the selling, or that the fishers of Atauro island and the south coast have a better understanding of which fish will sell and which will not and therefore can be more precise in their answering. It could also be because of a difference in the nuance of the question asked by the enumerators. 
+An interesting difference between the regions is that at the north coast a large part of the catch is documented as being used for both own consumption as well as being sold. While this is likely also the case on Atauro island and the south coast, it is not being documented in the same manner. Why there is this difference in documenting between the regions is not clear. It could be that the fishers of the north coast are more realistic with the outcome of the selling, or that the fishers of Atauro island and the south coast have a better understanding of which fish will sell and which will not and therefore can be more precise in their answering. It could also be because of a difference in the nuance of the question asked by the enumerators. 
 
-Most of the fish being kept for own consumption is smaller sized fish and fish species, with some exceptions such as the Cobia (Rachycentron canadum) and the Moray eel (Gymnothorax spp.) (fig. \@ref(fig:UsageProp); fig. \@ref(fig:LengthUsage)). Large-size fish and fish species are often easier to sell, as they look more appetising and are in demand by the restaurants and urban population (Venugopa & Shahidi, 1995). 
+Most of the fish being kept for own consumption is smaller sized fish and fish species, with some exceptions such as the Cobia (Rachycentron canadum) and the Moray eel (Gymnothorax spp.) (fig. \@ref(fig:UsageProp); fig. \@ref(fig:LengthUsage)). Large-size fish and fish species are often easier to sell, as they look more appetising and are in demand by the restaurants and urban population (Venugopa & Shahidi, 1995). 
 
 (ref:Usage) **Destination of catch over time.** The mean weight (kg) per week of the sampled catch being sold on market, kept for own consumption, or both on Atauro island (grey), north coast (red), and south coast (light blue) in the period of April 2018 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling.
 
 ```{r Usage, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7.5, fig.width=6, fig.cap='(ref:Usage)'}
 
 plot_fun <- function(data = NULL, usage = NULL) {
-  
   y_label <- ifelse(usage == "Own consumption", "Weight (Kg)", "")
   x_label <- ifelse(usage == "Sold on market", "Date", "")
-  
-  main_plot <- 
+
+  main_plot <-
     data %>%
     dplyr::filter(catch_purpose == usage) %>%
     ggplot(aes(month_period, mean)) +
     theme_minimal(13) +
     annotate("rect",
-             xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
-             ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+      xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+      ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
     ) +
     geom_point(aes(color = area), size = 0.25) +
     geom_line(aes(color = area), size = 0.25) +
@@ -900,7 +1011,8 @@ plot_fun <- function(data = NULL, usage = NULL) {
     scale_fill_manual(values = area_colors) +
     scale_color_manual(values = area_colors) +
     scale_y_continuous(
-      expand = c(0, 0)) +
+      expand = c(0, 0)
+    ) +
     scale_x_date(
       date_breaks = "3 month",
       minor_breaks = NULL,
@@ -914,7 +1026,7 @@ plot_fun <- function(data = NULL, usage = NULL) {
       strip.text = element_blank(),
       plot.title = element_text(size = 12, face = "bold")
     ) +
-    ggtitle(usage)+
+    ggtitle(usage) +
     labs(
       x = x_label,
       y = y_label,
@@ -922,46 +1034,55 @@ plot_fun <- function(data = NULL, usage = NULL) {
       fill = ""
     ) +
     guides(colour = "none")
-  
-  plot_legend <<-  
-    ggpubr::get_legend(main_plot) %>% 
+
+  plot_legend <<-
+    ggpubr::get_legend(main_plot) %>%
     ggpubr::as_ggplot()
-  
+
   main_plot
 }
 
-plot_dat <- 
+plot_dat <-
   report_data %>%
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(landing_date = dplyr::first(landing_date),
-                   area = dplyr::first(area),
-                   catch_purpose = dplyr::first(catch_purpose),
-                   weight = sum(weight, na.rm =T)) %>% 
-  dplyr::mutate(week = lubridate::week(landing_date),
-                month_period = lubridate::floor_date(landing_date, unit = "month"),
-                weight = weight/1000,
-                catch_purpose = dplyr::case_when(catch_purpose == "both" ~ "Both",
-                                                 catch_purpose == "food" ~ "Own consumption",
-                                                 catch_purpose == "sale" ~ "Sold on market",
-                                                 TRUE ~ .data$catch_purpose),
-                catch_purpose = as.factor(catch_purpose)) %>% 
-  dplyr::select(area, catch_purpose, month_period, week, weight) %>% 
-  dplyr::group_by(area, catch_purpose, month_period, week) %>% 
-  dplyr::summarise(weight = sum(weight, na.rm =TRUE)) %>% 
-  dplyr::group_by(area, catch_purpose, month_period) %>% 
-  dplyr::summarise(mean = mean(weight, na.rm =TRUE),
-                   sd = sd(weight,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper = dplyr::case_when(catch_purpose == "Both" & .data$CI_upper > 10500 ~ 10500, 
-                                               catch_purpose == "Own consumption" & .data$CI_upper > 750 ~ 750,
-                                               catch_purpose == "Sold on market" & .data$CI_upper > 6000 ~ 6000,
-                                               TRUE ~ .data$CI_upper),
-                   CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower)) %>% 
-  dplyr::ungroup() 
-
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    landing_date = dplyr::first(landing_date),
+    area = dplyr::first(area),
+    catch_purpose = dplyr::first(catch_purpose),
+    weight = sum(weight, na.rm = T)
+  ) %>%
+  dplyr::mutate(
+    week = lubridate::week(landing_date),
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    weight = weight / 1000,
+    catch_purpose = dplyr::case_when(
+      catch_purpose == "both" ~ "Both",
+      catch_purpose == "food" ~ "Own consumption",
+      catch_purpose == "sale" ~ "Sold on market",
+      TRUE ~ .data$catch_purpose
+    ),
+    catch_purpose = as.factor(catch_purpose)
+  ) %>%
+  dplyr::select(area, catch_purpose, month_period, week, weight) %>%
+  dplyr::group_by(area, catch_purpose, month_period, week) %>%
+  dplyr::summarise(weight = mean(weight, na.rm = TRUE)) %>%
+  dplyr::group_by(area, catch_purpose, month_period) %>%
+  dplyr::summarise(
+    mean = mean(weight, na.rm = TRUE),
+    sd = sd(weight, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = dplyr::case_when(
+      catch_purpose == "Both" & .data$CI_upper > 500 ~ 500,
+      catch_purpose == "Own consumption" & .data$CI_upper > 100 ~ 100,
+      catch_purpose == "Sold on market" & .data$CI_upper > 85 ~ 85,
+      TRUE ~ .data$CI_upper
+    ),
+    CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower)
+  ) %>%
+  dplyr::ungroup()
 
 all_plots <- purrr::map(
   .x = unique(plot_dat$catch_purpose),
@@ -972,13 +1093,13 @@ all_plots <- purrr::map(
 )
 
 cowplot::plot_grid(plot_legend,
-                   all_plots[[1]] + theme(legend.position = "none"),
-                   all_plots[[2]] + theme(legend.position = "none"),
-                   all_plots[[3]] + theme(legend.position = "none"),
-                   ncol = 1, nrow = 4,
-                   rel_heights = c(0.5, 2,2,2),
-                   align = "v")
-
+  all_plots[[1]] + theme(legend.position = "none"),
+  all_plots[[2]] + theme(legend.position = "none"),
+  all_plots[[3]] + theme(legend.position = "none"),
+  ncol = 1, nrow = 4,
+  rel_heights = c(0.5, 2, 2, 2),
+  align = "v"
+)
 ```
 
 (ref:UsageProp) **Bar plot of the destination of the catch per species.** The y-axis shows individual species grouped by functional group and the x-axis shows the percentage of the catch in weight (kg) being sold on the market (brown), held for own consumption (light green), or used for both (grey).
@@ -986,36 +1107,48 @@ cowplot::plot_grid(plot_legend,
 ```{r UsageProp, echo=FALSE, message=FALSE, warning=FALSE, fig.height=9, fig.width=8, fig.cap='(ref:UsageProp)'}
 
 report_data %>%
-  dplyr::filter(!catch_name=="Herring") %>% 
-  dplyr::group_by(trip_id, catch_name) %>% 
-  dplyr::summarise(catch_purpose = dplyr::first(catch_purpose),
-                   fish_group = dplyr::first(fish_group),
-                   catch_name = dplyr::first(catch_name),
-                   weight = sum(weight, na.rm =TRUE)) %>% 
+  dplyr::filter(!catch_name == "Herring") %>%
+  dplyr::group_by(trip_id, catch_name) %>%
+  dplyr::summarise(
+    catch_purpose = dplyr::first(catch_purpose),
+    fish_group = dplyr::first(fish_group),
+    catch_name = dplyr::first(catch_name),
+    weight = sum(weight, na.rm = TRUE)
+  ) %>%
   dplyr::filter(!is.na(catch_purpose) & weight > 0) %>%
-  dplyr::group_by(catch_purpose, fish_group, catch_name) %>% 
-  dplyr::summarise(weight = sum(weight, na.rm =TRUE),
-                   obs = dplyr::n()) %>% 
-  dplyr::group_by(catch_name) %>% 
-  dplyr::mutate(weight_tot = sum(weight, na.rm =T),
-                weight_perc = weight / weight_tot *100,
-                obs = sum(obs),
-                catch_purpose = dplyr::case_when(catch_purpose == "both" ~ "Both",
-                                                 catch_purpose == "food" ~ "Own consumption",
-                                                 catch_purpose == "sale" ~ "Sold on market",
-                                                 TRUE ~ .data$catch_purpose)) %>% 
-  dplyr::filter(!fish_group %in% c("Unknown", "Molluscs","Shrimps")) %>% 
+  dplyr::group_by(catch_purpose, fish_group, catch_name) %>%
+  dplyr::summarise(
+    weight = sum(weight, na.rm = TRUE),
+    obs = dplyr::n()
+  ) %>%
+  dplyr::group_by(catch_name) %>%
+  dplyr::mutate(
+    weight_tot = sum(weight, na.rm = T),
+    weight_perc = weight / weight_tot * 100,
+    obs = sum(obs),
+    catch_purpose = dplyr::case_when(
+      catch_purpose == "both" ~ "Both",
+      catch_purpose == "food" ~ "Own consumption",
+      catch_purpose == "sale" ~ "Sold on market",
+      TRUE ~ .data$catch_purpose
+    )
+  ) %>%
+  dplyr::filter(!fish_group %in% c("Unknown", "Molluscs", "Shrimps")) %>%
   ggplot(mapping = aes(x = reorder(catch_name, weight_perc), y = weight_perc, fill = catch_purpose)) +
-  coord_flip()+
-  geom_bar(stat="identity", width = 0.8) +
-  facet_grid(fish_group~., scales = "free_y", space = "free_y")+
+  coord_flip() +
+  geom_bar(stat = "identity", width = 0.8) +
+  facet_grid(fish_group ~ ., scales = "free_y", space = "free_y") +
   theme_minimal(11) +
-  theme(text = element_text(family = "Helvetica"),
-        strip.text.y  = element_text(angle = 0)) +
+  theme(
+    text = element_text(family = "Helvetica"),
+    strip.text.y = element_text(angle = 0)
+  ) +
   theme(legend.position = "top") +
   scale_fill_manual(values = catch_use_palette) +
-  scale_y_continuous(labels = absolute_percent,
-                     expand = c(0, 0)) +
+  scale_y_continuous(
+    labels = absolute_percent,
+    expand = c(0, 0)
+  ) +
   labs(y = "Catch stock", x = "", fill = "")
 ```
 
@@ -1025,94 +1158,112 @@ report_data %>%
 
 everyother <- function(x) x[seq_along(x) %% 7 == 1]
 
-p1 <- 
+p1 <-
   report_data %>%
-  dplyr::filter(!catch_name=="Herring" & individuals >0) %>% 
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   catch_purpose = dplyr::first(catch_purpose),
-                   weight = sum(weight, na.rm =TRUE),
-                   length = dplyr::first(length),
-                   obs = dplyr::n()) %>% 
-  dplyr::group_by(area, length) %>% 
-  dplyr::mutate(weight_tot = sum(weight, na.rm =T),
-                weight_perc = weight / weight_tot *100,
-                obs = sum(obs),
-                catch_purpose = dplyr::case_when(catch_purpose == "both" ~ "Both",
-                                                 catch_purpose == "food" ~ "Own consumption",
-                                                 catch_purpose == "sale" ~ "Sold on market",
-                                                 TRUE ~ .data$catch_purpose)) %>% 
-  dplyr::filter(weight_perc>0) %>% 
+  dplyr::filter(!catch_name == "Herring" & individuals > 0) %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    catch_purpose = dplyr::first(catch_purpose),
+    weight = sum(weight, na.rm = TRUE),
+    length = dplyr::first(length),
+    obs = dplyr::n()
+  ) %>%
+  dplyr::group_by(area, length) %>%
+  dplyr::mutate(
+    weight_tot = sum(weight, na.rm = T),
+    weight_perc = weight / weight_tot * 100,
+    obs = sum(obs),
+    catch_purpose = dplyr::case_when(
+      catch_purpose == "both" ~ "Both",
+      catch_purpose == "food" ~ "Own consumption",
+      catch_purpose == "sale" ~ "Sold on market",
+      TRUE ~ .data$catch_purpose
+    )
+  ) %>%
+  dplyr::filter(weight_perc > 0) %>%
   ggplot(mapping = aes(as.factor(length), y = weight_perc, fill = catch_purpose)) +
   geom_col() +
-  facet_grid(.~area, scales = "free")+
+  facet_grid(. ~ area, scales = "free") +
   theme_minimal(11) +
   theme(text = element_text(family = "Helvetica")) +
   theme(legend.position = "top") +
   scale_fill_manual(values = catch_use_palette) +
-  scale_y_continuous(labels = absolute_percent,
-                     expand = c(0, 0)) +
-  scale_x_discrete(breaks = everyother)+
+  scale_y_continuous(
+    labels = absolute_percent,
+    expand = c(0, 0)
+  ) +
+  scale_x_discrete(breaks = everyother) +
   labs(y = "Percentage of catch", x = "", fill = "")
-
 
 everyother <- function(x) x[seq_along(x) %% 3 == 1]
 
-dat <- 
+dat <-
   report_data %>%
-  dplyr::filter(!catch_name=="Herring" & individuals >0 & !is.na(length)) %>% 
-  dplyr::group_by(trip_id) %>% 
-  dplyr::mutate(length = dplyr::case_when(length > 60 ~ 60, TRUE ~ length)) %>% 
-  dplyr::summarise(area = dplyr::first(area),
-                   catch_purpose = dplyr::first(catch_purpose),
-                   weight = sum(weight, na.rm =TRUE),
-                   length = dplyr::first(length),
-                   obs = dplyr::n()) %>% 
-  dplyr::mutate(length = as.character(length),
-                length = dplyr::case_when(.data$length == 60 ~ ">60", TRUE ~ .data$length),
-                length = as.factor(length)) 
-    
-dat$length <- factor(dat$length, levels = c("1","7.5","12.5","17.5","22.5","27.5","32.5","37.5","42.5","47.5","52.5","57.5",">60"))
+  dplyr::filter(!catch_name == "Herring" & individuals > 0 & !is.na(length)) %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::mutate(length = dplyr::case_when(length > 60 ~ 60, TRUE ~ length)) %>%
+  dplyr::summarise(
+    area = dplyr::first(area),
+    catch_purpose = dplyr::first(catch_purpose),
+    weight = sum(weight, na.rm = TRUE),
+    length = dplyr::first(length),
+    obs = dplyr::n()
+  ) %>%
+  dplyr::mutate(
+    length = as.character(length),
+    length = dplyr::case_when(.data$length == 60 ~ ">60", TRUE ~ .data$length),
+    length = as.factor(length)
+  )
 
-p2 <- 
-  dat %>% 
-  dplyr::group_by(area, length) %>% 
-  dplyr::mutate(weight = weight/1000,
-                weight_tot = sum(weight, na.rm =T),
-                obs = sum(obs),
-                catch_purpose = dplyr::case_when(catch_purpose == "both" ~ "Both",
-                                                 catch_purpose == "food" ~ "Own consumption",
-                                                 catch_purpose == "sale" ~ "Sold on market",
-                                                 TRUE ~ .data$catch_purpose)) %>% 
-  dplyr::filter(weight>0) %>% 
+dat$length <- factor(dat$length, levels = c("1", "7.5", "12.5", "17.5", "22.5", "27.5", "32.5", "37.5", "42.5", "47.5", "52.5", "57.5", ">60"))
+
+p2 <-
+  dat %>%
+  dplyr::group_by(area, length) %>%
+  dplyr::mutate(
+    weight = weight / 1000,
+    weight_tot = sum(weight, na.rm = T),
+    obs = sum(obs),
+    catch_purpose = dplyr::case_when(
+      catch_purpose == "both" ~ "Both",
+      catch_purpose == "food" ~ "Own consumption",
+      catch_purpose == "sale" ~ "Sold on market",
+      TRUE ~ .data$catch_purpose
+    )
+  ) %>%
+  dplyr::filter(weight > 0) %>%
   ggplot(mapping = aes(length, y = weight, fill = catch_purpose)) +
   geom_col() +
-  facet_wrap(.~area, scales = "free")+
+  facet_wrap(. ~ area, scales = "free") +
   theme_minimal(11) +
   theme(text = element_text(family = "Helvetica")) +
-  theme(legend.position = "none",
-        strip.text = element_blank()) +
+  theme(
+    legend.position = "none",
+    strip.text = element_blank()
+  ) +
   scale_fill_manual(values = catch_use_palette) +
   scale_y_continuous(expand = c(0, 0)) +
-  scale_x_discrete(breaks = everyother)+
+  scale_x_discrete(breaks = everyother) +
   labs(y = "Weight (Kg)", x = "Length (cm)", fill = "")
 
-
-cowplot::plot_grid(p1,p2,ncol =1,
-                   align = "hv",
-                   rel_heights = c(1,0.75),
-                   labels = "auto")
+cowplot::plot_grid(p1, p2,
+  ncol = 1,
+  align = "hv",
+  rel_heights = c(1, 0.75),
+  labels = "auto"
+)
 ```
 
 ## **Market value of catch**
 
-To analyse the market value of the catch, the dataset was subset to only include catches which destination was to be sold on the market. 
+To analyse the market value of the catch, the dataset was subset to only include catches which destination was to be sold on the market. 
 
 The catch in hand lines yields the highest price (USD) per kg of the different gear types, followed by long lines (fig. \@ref(fig:ValueGear)). Gill nets and spear guns generate the lowest price per kg.
 
 In the peskAAS dataset, the market value of the catch was given per fishing trip instead of per caught species. To be able to estimate the market value per functional group, the data was filtered to only include trips characterized by a catch consisting of a single fish group (77.23% of total trips).
 
-This considering, the large pelagics and large demersal yield the highest price (USD) per kg of the different functional groups (fig. \@ref(fig:ValueFish)). The cephalopods and sharks bring in the lowest price per kg, followed by the small pelagics and small demersals. As larger-sized fish look more appetising and are more in demand, it makes sense that they would sell for the highest price per kg. A consistent positive trend in price per kg is evident in the North Coast, involving both the demersals and the large pelagics.
+This considering, the large pelagics and large demersal yield the highest price (USD) per kg of the different functional groups (fig. \@ref(fig:ValueFish)). The cephalopods and sharks bring in the lowest price per kg, followed by the small pelagics and small demersals. As larger-sized fish look more appetising and are more in demand, it makes sense that they would sell for the highest price per kg. A consistent positive trend in price per kg is evident in the North Coast, involving both the demersals and the large pelagics.
 
 Before Covid, the selling price per kg of catch was slight higher in the South Coast, followed by the North coast and lastly Atauro island (fig. \@ref(fig:MarketValue)). This could possibly be because the south coast is home to larger fish species. However, it is still somewhat counter-intuitive. The south coast has poor infrastructure and is located further from the places with high demand (such as Dili), and you would therefore expect the traders to pay less as they need to compensate for the costs made for transport facilities and preservation of the produce [(Población, 2013)](https://paperpile.com/c/Yw05cY/kST0). Atauro island selling for the lowest price per kg is also doubtful. According to [(Mills et al., 2017)](https://paperpile.com/c/Yw05cY/SKw9X), fish from Atauro island has a higher standing among the Dili-based middle class, as well as easy accessibility. Fishers from Atauro island also do not appear too worried about being able to sell their catch [(Mills et al., 2017)](https://paperpile.com/c/Yw05cY/SKw9X). One should anyhow be hesitant in making a comparison between the regions, as there have been differences in how the enumerators record the pricing between the areas and over time.
 
@@ -1122,58 +1273,71 @@ After Covid, both the South and North coasts were characterized by a consistent 
 
 ```{r MarketValue, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3.5, fig.width=6.5, fig.cap='(ref:MarketValue)'}
 
-single_catches <- 
-  report_data %>% 
-  group_by(trip_id) %>% 
-  dplyr::count(catch_taxon) %>% 
-  dplyr::filter(n<=12) %>% 
+single_catches <-
+  report_data %>%
+  group_by(trip_id) %>%
+  dplyr::count(catch_taxon) %>%
+  dplyr::filter(n <= 12) %>%
   magrittr::extract2("trip_id")
 
 report_data %>%
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month")) %>% 
-  dplyr::filter(trip_id %in% single_catches &!catch_taxon == "MZZ" & !is.na(weight) & !is.na(landing_value) &
-                  catch_purpose == "sale" & landing_date > "2019-01-01") %>% 
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(period = dplyr::first(period),
-                   area = dplyr::first(area),
-                   month_period = dplyr::first(month_period),
-                   landing_date = dplyr::first(landing_date),
-                   weight = sum(weight, na.rm = T),
-                   landing_value = dplyr::first(landing_value)) %>% 
-  dplyr::filter(weight >0 & landing_value >0) %>% 
-  dplyr::mutate(weight = weight/1000,
-                price_weight = landing_value/weight) %>% 
-  dplyr::group_by(area, month_period) %>% 
-  dplyr::summarise(mean = mean(price_weight, na.rm =TRUE),
-                   sd = sd(price_weight,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal()+
+  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month")) %>%
+  dplyr::filter(trip_id %in% single_catches & !catch_taxon == "MZZ" & !is.na(weight) & !is.na(landing_value) &
+    catch_purpose == "sale" & landing_date > "2019-01-01") %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    period = dplyr::first(period),
+    area = dplyr::first(area),
+    month_period = dplyr::first(month_period),
+    landing_date = dplyr::first(landing_date),
+    weight = sum(weight, na.rm = T),
+    landing_value = dplyr::first(landing_value)
+  ) %>%
+  dplyr::filter(weight > 0 & landing_value > 0) %>%
+  dplyr::mutate(
+    weight = weight / 1000,
+    price_weight = landing_value / weight
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean = mean(price_weight, na.rm = TRUE),
+    sd = sd(price_weight, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal() +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.25)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA),
-                     n.breaks = 8,
-                     labels = scales::dollar) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2019-01-01"), NA)) +
-  theme(legend.position = "top")+
-  labs(x = "",
-       y = "Price per Kg catch",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.25) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA),
+    n.breaks = 8,
+    labels = scales::dollar
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2019-01-01"), NA)
+  ) +
+  theme(legend.position = "top") +
+  labs(
+    x = "",
+    y = "Price per Kg catch",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
 ```
 
@@ -1181,142 +1345,178 @@ report_data %>%
 
 ```{r ValueGear, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=6.5, fig.cap='(ref:ValueGear)'}
 
-single_catches <- 
-  report_data %>% 
-  group_by(trip_id) %>% 
-  dplyr::count(catch_taxon) %>% 
-  dplyr::filter(n<=12) %>% 
+single_catches <-
+  report_data %>%
+  group_by(trip_id) %>%
+  dplyr::count(catch_taxon) %>%
+  dplyr::filter(n <= 12) %>%
   magrittr::extract2("trip_id")
 
 report_data %>%
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month")) %>% 
+  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month")) %>%
   dplyr::filter(trip_id %in% single_catches & !catch_taxon == "MZZ" & !is.na(weight) & !is.na(landing_value) &
-                  catch_purpose == "sale" & landing_date > "2019-04-01" &
-                  gear_type %in% c("gill net", "long line", "hand line", "spear gun")) %>% 
-  droplevels() %>% 
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(period = dplyr::first(period),
-                   gear_type = dplyr::first(gear_type),
-                   month_period = dplyr::first(month_period),
-                   landing_date = dplyr::first(landing_date),
-                   weight = sum(weight, na.rm = T),
-                   landing_value = dplyr::first(landing_value)) %>% 
-  dplyr::filter(weight >0 & landing_value >0) %>% 
-  dplyr::mutate(weight = weight/1000,
-                price_weight = landing_value/weight) %>% 
-  dplyr::group_by(gear_type, month_period) %>% 
-  dplyr::summarise(mean = mean(price_weight, na.rm =TRUE),
-                   sd = sd(price_weight,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>%
-  dplyr::mutate(CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower),
-                CI_upper = dplyr::case_when(gear_type == "spear gun" & .data$CI_upper > 12 ~ 12,
-                                            TRUE ~ .data$CI_upper)) %>% 
-  ggplot(aes(month_period, mean))+
-  facet_wrap(.~gear_type, scales = "free", ncol =2)+
-  theme_minimal()+
+    catch_purpose == "sale" & landing_date > "2019-04-01" &
+    gear_type %in% c("gill net", "long line", "hand line", "spear gun")) %>%
+  droplevels() %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    period = dplyr::first(period),
+    gear_type = dplyr::first(gear_type),
+    month_period = dplyr::first(month_period),
+    landing_date = dplyr::first(landing_date),
+    weight = sum(weight, na.rm = T),
+    landing_value = dplyr::first(landing_value)
+  ) %>%
+  dplyr::filter(weight > 0 & landing_value > 0) %>%
+  dplyr::mutate(
+    weight = weight / 1000,
+    price_weight = landing_value / weight
+  ) %>%
+  dplyr::group_by(gear_type, month_period) %>%
+  dplyr::summarise(
+    mean = mean(price_weight, na.rm = TRUE),
+    sd = sd(price_weight, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  dplyr::mutate(
+    CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower),
+    CI_upper = dplyr::case_when(
+      gear_type == "spear gun" & .data$CI_upper > 12 ~ 12,
+      TRUE ~ .data$CI_upper
+    )
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  facet_wrap(. ~ gear_type, scales = "free", ncol = 2) +
+  theme_minimal() +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = gear_type), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = gear_type), alpha=0.4)+
-  stat_smooth(aes(color = gear_type), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = c("#B3DE69", "#FDB462", "#80B1D3","#FB8072"))+
-  scale_color_manual(values = c("#B3DE69", "#FDB462", "#80B1D3","#FB8072"))+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA),
-                     n.breaks = 8,
-                     labels = scales::dollar) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2019-01-01"), NA)) +
-  theme(legend.position = "top")+
-  labs(x = "",
-       y = "Price per Kg catch",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = gear_type), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = gear_type), alpha = 0.4) +
+  stat_smooth(aes(color = gear_type), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = c("#B3DE69", "#FDB462", "#80B1D3", "#FB8072")) +
+  scale_color_manual(values = c("#B3DE69", "#FDB462", "#80B1D3", "#FB8072")) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA),
+    n.breaks = 8,
+    labels = scales::dollar
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2019-01-01"), NA)
+  ) +
+  theme(legend.position = "top") +
+  labs(
+    x = "",
+    y = "Price per Kg catch",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
-
 ```
 
 (ref:ValueFish) **Mean market value (USD) per kg of the catch of the most frequently caught functional groups** in Atauro Island (grey), north coast (red) and south coast (light blue), during the period of January 2019 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling for every functional group.
 
 ```{r ValueFish, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=7, fig.cap='(ref:ValueFish)'}
 
-single_catches <- 
-  report_data %>% 
-  group_by(trip_id) %>% 
-  dplyr::count(catch_taxon) %>% 
-  dplyr::filter(n<=12) %>% 
+single_catches <-
+  report_data %>%
+  group_by(trip_id) %>%
+  dplyr::count(catch_taxon) %>%
+  dplyr::filter(n <= 12) %>%
   magrittr::extract2("trip_id")
 
 report_data %>%
-  dplyr::mutate(month_period = lubridate::floor_date(landing_date, unit = "month"),
-                cepha_atauro = dplyr::case_when(fish_group == "Cephalopods" & !area == "Atauro island" ~ "no", TRUE ~ "yes"),
-                sharks_south = dplyr::case_when(fish_group == "Sharks and rays" & !area == "South Coast" ~ "no", TRUE ~ "yes")) %>% 
-  dplyr::filter(trip_id %in% single_catches &!catch_taxon == "MZZ" &
-                !is.na(weight) & !is.na(landing_value) &
-                catch_purpose == "sale" &
-                landing_date > "2019-01-01" &
-                !fish_group %in% c("Molluscs", "Crustaceans", "Shrimps") &
-                cepha_atauro == "yes",
-                sharks_south == "yes") %>% 
-  dplyr::group_by(trip_id) %>% 
-  dplyr::summarise(period = dplyr::first(period),
-                   area = dplyr::first(area),
-                   month_period = dplyr::first(month_period),
-                   landing_date = dplyr::first(landing_date),
-                   fish_group = dplyr::first(fish_group),
-                   weight = sum(weight, na.rm = T),
-                   landing_value = dplyr::first(landing_value)) %>% 
-  dplyr::filter(weight >0 & landing_value >0) %>% 
-  dplyr::mutate(weight = weight/1000,
-                price_weight = landing_value/weight) %>% 
-  dplyr::group_by(area, fish_group, month_period) %>% 
-  dplyr::summarise(mean = mean(price_weight, na.rm =TRUE),
-                   sd = sd(price_weight,na.rm=TRUE),
-                   n = dplyr::n(),
-                   sem=(sd/sqrt(n-1)),
-                   CI_lower=(mean + qt((1-0.95)/2, df=n-1)*sem),
-                   CI_upper=(mean - qt((1-0.95)/2, df=n-1)*sem)) %>% 
-  dplyr::mutate(CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower),
-                CI_upper = dplyr::case_when(fish_group == "Large demersals" &.data$CI_upper > 40 ~ 40,
-                                            fish_group == "Sharks and rays" &.data$CI_upper > 40 ~ 40,
-                                            fish_group == "Small demersals" &.data$CI_upper > 40 ~ 40,
-                                            fish_group == "Small pelagics" &.data$CI_upper > 12 ~ 12,
-                                            fish_group == "Cephalopods" &.data$CI_upper > 25 ~ 25,
-                                            TRUE ~ .data$CI_upper)) %>% 
-  ggplot(aes(month_period, mean))+
-  theme_minimal()+
-  facet_wrap(.~fish_group, scales = "free", ncol = 2)+
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    cepha_atauro = dplyr::case_when(fish_group == "Cephalopods" & !area == "Atauro island" ~ "no", TRUE ~ "yes"),
+    sharks_south = dplyr::case_when(fish_group == "Sharks and rays" & !area == "South Coast" ~ "no", TRUE ~ "yes")
+  ) %>%
+  dplyr::filter(
+    trip_id %in% single_catches & !catch_taxon == "MZZ" &
+      !is.na(weight) & !is.na(landing_value) &
+      catch_purpose == "sale" &
+      landing_date > "2019-01-01" &
+      !fish_group %in% c("Molluscs", "Crustaceans", "Shrimps") &
+      cepha_atauro == "yes",
+    sharks_south == "yes"
+  ) %>%
+  dplyr::group_by(trip_id) %>%
+  dplyr::summarise(
+    period = dplyr::first(period),
+    area = dplyr::first(area),
+    month_period = dplyr::first(month_period),
+    landing_date = dplyr::first(landing_date),
+    fish_group = dplyr::first(fish_group),
+    weight = sum(weight, na.rm = T),
+    landing_value = dplyr::first(landing_value)
+  ) %>%
+  dplyr::filter(weight > 0 & landing_value > 0) %>%
+  dplyr::mutate(
+    weight = weight / 1000,
+    price_weight = landing_value / weight
+  ) %>%
+  dplyr::group_by(area, fish_group, month_period) %>%
+  dplyr::summarise(
+    mean = mean(price_weight, na.rm = TRUE),
+    sd = sd(price_weight, na.rm = TRUE),
+    n = dplyr::n(),
+    sem = (sd / sqrt(n - 1)),
+    CI_lower = (mean + qt((1 - 0.95) / 2, df = n - 1) * sem),
+    CI_upper = (mean - qt((1 - 0.95) / 2, df = n - 1) * sem)
+  ) %>%
+  dplyr::mutate(
+    CI_lower = dplyr::case_when(.data$CI_lower < 0 ~ 0, TRUE ~ .data$CI_lower),
+    CI_upper = dplyr::case_when(
+      fish_group == "Large demersals" & .data$CI_upper > 40 ~ 40,
+      fish_group == "Sharks and rays" & .data$CI_upper > 40 ~ 40,
+      fish_group == "Small demersals" & .data$CI_upper > 40 ~ 40,
+      fish_group == "Small pelagics" & .data$CI_upper > 12 ~ 12,
+      fish_group == "Cephalopods" & .data$CI_upper > 25 ~ 25,
+      TRUE ~ .data$CI_upper
+    )
+  ) %>%
+  ggplot(aes(month_period, mean)) +
+  theme_minimal() +
+  facet_wrap(. ~ fish_group, scales = "free", ncol = 2) +
   annotate("rect",
-           xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"), 
-           ymin = -Inf, ymax = Inf,  fill = "grey", alpha=.5)+
-  geom_point(aes(color = area), size = 0.25)+
-  geom_ribbon(aes(ymin=CI_lower, ymax=CI_upper, fill = area), alpha=0.25)+
-  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75)+
-  scale_fill_manual(values = area_colors)+
-  scale_color_manual(values = area_colors)+
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0,NA),
-                     n.breaks = 8,
-                     labels = scales::dollar) +
-  scale_x_date(date_breaks = "3 month",
-               minor_breaks = NULL,
-               labels = label_date,
-               expand = c(0,0),
-               limits = c(as.Date("2019-01-01"), NA)) +
-  theme(legend.position = "top")+
-  labs(x = "Date",
-       y = "Price per Kg catch",
-       color = "",
-       fill = "")+
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_ribbon(aes(ymin = CI_lower, ymax = CI_upper, fill = area), alpha = 0.25) +
+  stat_smooth(aes(color = area), method = "loess", alpha = 0, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA),
+    n.breaks = 8,
+    labels = scales::dollar
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2019-01-01"), NA)
+  ) +
+  theme(legend.position = "top") +
+  labs(
+    x = "Date",
+    y = "Price per Kg catch",
+    color = "",
+    fill = ""
+  ) +
   guides(colour = "none")
-
 ```
 
 # **Covid Box**
