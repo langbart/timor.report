@@ -258,13 +258,21 @@ $$
 
 There are considerably more fishing trips taken per week on the north coast than on Atauro island and the south coast (fig. X). This is a direct reflection of the north coast having the highest number of fishing boats registered and also where the majority of the population of Timor-Leste lives [(General Directorate of Statistics, 2015)](https://paperpile.com/c/Yw05cY/vg6Z). Within each region the number of fishing trips taken per week appear to remain quite constant over time.
 
+(ref:TripWeek) **Estimated total number of trips per week**. Estimated total number of trips per week for Atauro island (grey), the north coast (red) and the south coast (light blue), in the period of May 2019 to December 2021. The shaded areas around the time series represents the 95% confidence interval. The smoothed lines are the local polynomial regression. The grey shaded area defines the pandemic period starting from the COVID-19 lockdown on 28 March 2020.
+
+<div class="figure">
+<img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/TripWeek-1.png" alt="(ref:TripWeek)" width="624" />
+<p class="caption">(\#fig:TripWeek)(ref:TripWeek)</p>
+</div>
+
+
 ## **Trip effort**
 
 To calculate the trip effort the duration of a trip (hours) was multiplied with the number of fishermen (including women and children), resulting in an effort unit of fisher-hours.
 
 The trip effort (fisher-hours) of the three regions appears to be quite similar (fig. \@ref(fig:TripEffort)a). The trip effort mostly ranges between five to ten fisher-hours, with a peaks reaching up to 30 fisher-hours in the South Coast. There seems to be no clear trends in trip effort over time among the regions (fig. \@ref(fig:TripEffort)b).
 
-(ref:TripEffort) **Mean trip effort.** The mean effort (fishermen \* hours) of a fishing trip in Atauro island (grey), north coast (red) and south coast (light blue) for the period of May 2018 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y-axis has free scaling. The colored shaded areas represent the 95% confidence interval. The grey shaded area define the pandemic period starting from the COVID-19 lockdown on 28 March 2020.
+(ref:TripEffort) **Mean trip effort.** The mean effort (fishermen \* hours) of a fishing trip in Atauro island (grey), north coast (red) and south coast (light blue) for the period of May 2018 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y-axis has free scaling. The colored shaded areas represent the 95% confidence interval. The grey shaded area defines the pandemic period starting from the COVID-19 lockdown on 28 March 2020.
 
 <div class="figure">
 <img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/TripEffort-1.png" alt="(ref:TripEffort)" width="624" />
@@ -277,7 +285,7 @@ For this report, a standardised catch per unit effort (CPUE) was used, where the
 
 The CPUE (kg) of Atauro island and the north coast are quite similar, whereas the north coast has more high peaks (fig. \@ref(fig:CatchEffort)). The south coast appears to generally have a lower CPUE (kg) than Atauro island and the north coast. The CPUE (kg) of Atauro island seems to increase over time, while the north and south coasts show no apparent change of CPUE over time.
 
-(ref:CatchEffort) **Mean CPUE.** The mean catch (kg) per unit effort (fisher-hour) in Atauro island (grey), north coast (red) and south coast (grey) for the period of April 2018 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
+(ref:CatchEffort) **Mean CPUE.** The mean catch (kg) per unit effort (fisher-hour) in Atauro island (grey), north coast (red) and south coast (grey) for the period of April 2018 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The shaded areas around the time series represent the 95% confidence interval. The lines are the local polynomial regression. The grey shaded area defines the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
 
 <div class="figure">
 <img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/CatchEffort-1.png" alt="(ref:CatchEffort)" width="624" />
@@ -338,7 +346,7 @@ The landings seem to increase over time on the south coast, while remaining cons
 
 \
 
-(ref:MonthlyCatch) **Estimate of total monthly catch (tons).** Estimate of the total monthly catch (tons) for Atauro island (grey), north coast (red) and south coast (light blue), during the period of February 2018 to March 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
+(ref:MonthlyCatch) **Estimate of total monthly catch (tons).** Estimate of the total monthly catch (tons) for Atauro island (grey), north coast (red) and south coast (light blue), during the period of February 2018 to March 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The shaded areas around the time series represent the 95% confidence interval. The lines show the local polynomial regression. The grey shaded area defines the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
 
 ## **Seasonality**
 
@@ -374,7 +382,7 @@ An interesting difference between the regions is that at the north coast a large
 
 Most of the fish being kept for own consumption is smaller sized fish and fish species, with some exceptions such as the Cobia (Rachycentron canadum) and the Moray eel (Gymnothorax spp.) (fig. \@ref(fig:UsageProp); fig. \@ref(fig:LengthUsage)). Large-size fish and fish species are often easier to sell, as they look more appetising and are in demand by the restaurants and urban population (Venugopa & Shahidi, 1995). 
 
-(ref:Usage) **Destination of catch over time.** The mean weight (kg) per week of the sampled catch being sold on market, kept for own consumption, or both on Atauro island (grey), north coast (red), and south coast (light blue) in the period of April 2018 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling.
+(ref:Usage) **Destination of catch over time.** The mean weight (kg) per week of the sampled catch being sold on market, kept for own consumption, or both on Atauro island (grey), north coast (red), and south coast (light blue) in the period of April 2018 to December 2021. The shaded areas around the time series represent the 95% confidence interval. The lines are the local polynomial regression. The grey shaded area defines the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling.
 
 <div class="figure">
 <img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/Usage-1.png" alt="(ref:Usage)" width="576" />
@@ -409,21 +417,21 @@ Before Covid, the selling price per kg of catch was slight higher in the South C
 
 After Covid, both the South and North coasts were characterized by a consistent increase in the price per kg of catch, but while in the North the trend kept increasing, the South Coast showed a quick drop in the average price.
 
-(ref:MarketValue) **Mean market value (USD) per kg of the catch.** Mean market value (USD) per kg of the catch for Atauro island (grey), north coast (red) and south coast (light blue), during the period of January 2019 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
+(ref:MarketValue) **Mean market value (USD) per kg of the catch.** Mean market value (USD) per kg of the catch for Atauro island (grey), north coast (red) and south coast (light blue), during the period of January 2019 to December 2021. The shaded areas around the time series represent the 95% confidence interval. The lines are the local polynomial regression. The grey shaded area defines the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
 
 <div class="figure">
 <img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/MarketValue-1.png" alt="(ref:MarketValue)" width="624" />
 <p class="caption">(\#fig:MarketValue)(ref:MarketValue)</p>
 </div>
 
-(ref:ValueGear) **Mean market value (USD) per kg of the catch of the most used gear types.** Mean market value (USD) per kg of the catch in gill nets, hand lines, long lines, and spear guns during the period of April 2019 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling for every gear type.
+(ref:ValueGear) **Mean market value (USD) per kg of the catch of the most used gear types.** Mean market value (USD) per kg of the catch in gill nets, hand lines, long lines, and spear guns during the period of April 2019 to December 2021. The shaded areas around the time series represent the 95% confidence interval. The lines are the local polynomial regression. The grey shaded area defines the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling for every gear type.
 
 <div class="figure">
 <img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/ValueGear-1.png" alt="(ref:ValueGear)" width="624" />
 <p class="caption">(\#fig:ValueGear)(ref:ValueGear)</p>
 </div>
 
-(ref:ValueFish) **Mean market value (USD) per kg of the catch of the most frequently caught functional groups** in Atauro Island (grey), north coast (red) and south coast (light blue), during the period of January 2019 to December 2021. The shaded area around the time series represent the 95% confidence interval. The line shows the local polynomial regression. The grey shaded area define the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling for every functional group.
+(ref:ValueFish) **Mean market value (USD) per kg of the catch of the most frequently caught functional groups** in Atauro Island (grey), north coast (red) and south coast (light blue), during the period of January 2019 to December 2021. The shaded areas around the time series represent the 95% confidence interval. The lines are the local polynomial regression. The grey shaded area defines the COVID-19 pandemic period, starting from the lockdown on 28 March 2020. The y-axis has free scaling for every functional group.
 
 <div class="figure">
 <img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/ValueFish-1.png" alt="(ref:ValueFish)" width="672" />

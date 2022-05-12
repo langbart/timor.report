@@ -2,14 +2,6 @@
 
 library(magrittr)
 
-
-read_config <- function() {
-  pars <- config::get(
-    config = Sys.getenv("R_CONFIG_ACTIVE", "default"),
-    file = system.file("config.yml", package = "timor.report")
-  )
-  pars
-}
 pars <- read_config()
 googleCloudStorageR::gcs_auth(json_file = "auth/gcp-sa-peskas_ingestion-key.json")
 
@@ -240,6 +232,19 @@ get_file <- function(prefix) {
   x
 }
 
+get_merged_trips <- function(pars, ...) {
+  cloud_object_name(
+    prefix = paste0(pars$merged_trips$prefix),
+    provider = pars$storage_meta$google$key,
+    options = pars$storage_meta$google$options,
+    ...
+  ) %>%
+    download_cloud_file(
+      provider = pars$storage_meta$google$key,
+      options = pars$storage_meta$google$options
+    ) %>%
+    readr::read_rds()
+}
 
 #' Preprocess and store report data
 #'
@@ -256,8 +261,6 @@ store_data <- function(...) {
   trips <- get_file("timor_trips")
   catch <- get_file("timor_catch")
   metadata <- get_file("metadata-tables_preprocessed")
-
-
 
   catch_clean <-
     catch %>%
@@ -277,8 +280,13 @@ store_data <- function(...) {
     dplyr::filter(.data$landing_date < "2021-12-31") %>%
     dplyr::mutate(area = dplyr::case_when(
       .data$reporting_region %in% c("Bobonaro", "Liquiça", "Dili", "Baucau", "Oecusse") |
-        .data$landing_station %in% c("Com", "Tutuala", "Ililai") ~ "North Coast",
+        .data$landing_station %in% c(
+          "Com", "Tutuala", "Ililai",
+          "Sentru/Liarafa/Sika/Rau Moko", "Comando"
+        ) ~ "North Coast",
       .data$reporting_region == "Atauro" ~ "Atauro island",
+      is.na(.data$reporting_region) | is.na(.data$reporting_region) |
+        is.na(.data$reporting_region) & is.na(.data$reporting_region) ~ NA_character_,
       TRUE ~ "South Coast"
     )) %>%
     dplyr::mutate(fish_group = dplyr::case_when(
@@ -326,9 +334,83 @@ store_data <- function(...) {
       .data$reporting_region:.data$landing_value,
       .data$fish_group, .data$catch_name, tidyselect::everything()
     ) %>%
-    dplyr::filter(!is.na(.data$area))
+    dplyr::filter(!is.na(.data$area) |
+      !is.na(.data$area))
 
   usethis::use_data(report_data, overwrite = TRUE)
 }
-
 store_data()
+
+get_trips_week <- function(pars, trips_data = NULL) {
+  merged_trips <- get_merged_trips(pars)
+  file.remove(list.files(pattern = pars$merged_trips$prefix, full.names = TRUE))
+
+  tidy_trips <-
+    merged_trips %>%
+    dplyr::select(
+      landing_id, tracker_trip_id, landing_date,
+      tracker_imei, reporting_region, landing_station
+    ) %>%
+    dplyr::filter(.data$landing_date < "2021-12-31") %>%
+    dplyr::mutate(
+      landing_date = as.Date(landing_date),
+      month_period = lubridate::floor_date(landing_date, unit = "month"),
+      week = lubridate::week(landing_date),
+      area = dplyr::case_when(
+        .data$reporting_region %in% c("Bobonaro", "Liquiça", "Dili", "Baucau", "Oecusse") |
+          .data$landing_station %in% c(
+            "Com", "Tutuala", "Ililai",
+            "Sentru/Liarafa/Sika/Rau Moko", "Comando"
+          ) ~ "North Coast",
+        .data$reporting_region == "Atauro" ~ "Atauro island",
+        is.na(.data$reporting_region) | is.na(.data$reporting_region) |
+          is.na(.data$reporting_region) & is.na(.data$reporting_region) ~ NA_character_,
+        TRUE ~ "South Coast"
+      )
+    ) %>%
+    dplyr::select(
+      area, landing_id, tracker_trip_id,
+      month_period, week, tracker_imei
+    ) %>%
+    dplyr::filter(!is.na(area))
+
+  trips_tracked <-
+    tidy_trips %>%
+    dplyr::filter(!is.na(tracker_trip_id)) %>%
+    dplyr::group_by(area, month_period, week) %>%
+    dplyr::summarise(trips_tracked_week = dplyr::n())
+
+  boats_tracked <-
+    tidy_trips %>%
+    dplyr::mutate(tracker_trip_id = dplyr::case_when(!is.na(tracker_trip_id) ~ "yes", TRUE ~ "no")) %>%
+    dplyr::rename(tracked = tracker_trip_id) %>%
+    dplyr::group_by(area, month_period, week, tracked) %>%
+    dplyr::summarise(boats_n = dplyr::n()) %>%
+    dplyr::mutate(
+      total_trips = sum(boats_n),
+      tracked_boats_perc = boats_n / total_trips * 100
+    ) %>%
+    dplyr::filter(tracked == "yes")
+
+  trips_per_week <-
+    dplyr::left_join(trips_tracked, boats_tracked) %>%
+    dplyr::select(area, month_period, trips_tracked_week, tracked_boats_perc) %>%
+    dplyr::mutate(trips_week = (trips_tracked_week / tracked_boats_perc) * 100) %>%
+    dplyr::group_by(area, month_period) %>%
+    dplyr::summarise(
+      sum = sum(trips_week, na.rm = TRUE),
+      mean = mean(trips_week, na.rm = TRUE),
+      sd = sd(trips_week, na.rm = TRUE),
+      n = dplyr::n(),
+      sem = (sd / sqrt(n - 1)),
+      CI_lower = (mean + qt((1 - 0.90) / 2, df = n - 1) * sem),
+      CI_upper = (mean - qt((1 - 0.90) / 2, df = n - 1) * sem),
+      CI_lower = ifelse(CI_lower < 0, 0, CI_lower)
+    )
+  trips_per_week
+}
+
+trips_per_week <- get_trips_week(pars, trips_data = merged_trips)
+usethis::use_data(trips_per_week, overwrite = TRUE)
+
+devtools::document()

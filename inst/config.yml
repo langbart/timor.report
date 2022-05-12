@@ -13,7 +13,6 @@ default:
         project: peskas
         bucket: timor
         service_account_key: !expr readLines("auth/gcp-sa-peskas_ingestion-key.json")
-
   public_storage:
     google:
       key: gcs
@@ -21,7 +20,8 @@ default:
         project: peskas
         bucket: public-timor
         service_account_key: !expr readLines("auth/gcp-sa-peskas_ingestion-key.json")
-
+  merged_trips:
+    prefix: all_trips
   nutrients:
     resource: "https://raw.githubusercontent.com/mamacneil/NutrientFishbase/master/model/Species_Nutrient_Predictions.csv"
     RDI:
