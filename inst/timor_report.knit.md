@@ -346,7 +346,13 @@ The landings seem to increase over time on the south coast, while remaining cons
 
 \
 
-(ref:MonthlyCatch) **Estimate of total monthly catch (tons).** Estimate of the total monthly catch (tons) for Atauro island (grey), north coast (red) and south coast (light blue), during the period of February 2018 to March 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The shaded areas around the time series represent the 95% confidence interval. The lines show the local polynomial regression. The grey shaded area defines the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
+(ref:MonthlyCatch) **Estimate of total monthly catch (tons).** Estimate of the total monthly catch (tons) for Atauro island (grey), north coast (red) and south coast (light blue), during the period of January 2019 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. Bold lines and shaded areas represent the local polynomial regression with 95% confidence interval. The grey shaded area defines the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
+
+<div class="figure">
+<img src="/Users/lore/My Drive/WorldFish/timor.report/inst/timor_report_files/figure-html/MonthlyCatch-1.png" alt="(ref:MonthlyCatch)" width="624" />
+<p class="caption">(\#fig:MonthlyCatch)(ref:MonthlyCatch)</p>
+</div>
+
 
 ## **Seasonality**
 

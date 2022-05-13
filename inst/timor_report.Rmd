@@ -905,7 +905,122 @@ The landings seem to increase over time on the south coast, while remaining cons
 
 \
 
-(ref:MonthlyCatch) **Estimate of total monthly catch (tons).** Estimate of the total monthly catch (tons) for Atauro island (grey), north coast (red) and south coast (light blue), during the period of February 2018 to March 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. The shaded areas around the time series represent the 95% confidence interval. The lines show the local polynomial regression. The grey shaded area defines the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
+(ref:MonthlyCatch) **Estimate of total monthly catch (tons).** Estimate of the total monthly catch (tons) for Atauro island (grey), north coast (red) and south coast (light blue), during the period of January 2019 to December 2021, with the regions plotted (a) together in one plot and (b) separately, where the y axis has free scaling. Bold lines and shaded areas represent the local polynomial regression with 95% confidence interval. The grey shaded area defines the COVID-19 pandemic period, starting from the lockdown on 28 March 2020.
+
+```{r MonthlyCatch, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7, fig.width=6.5, fig.cap='(ref:MonthlyCatch)'}
+
+mean_cpue <-
+  report_data %>%
+  dplyr::filter(n_fishers > 0 & individuals > 0) %>%
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    weight = weight / 1000,
+    catch_effort = (weight / n_fishers) / landing_survey_trip_duration
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    mean_cpue = mean(catch_effort, na.rm = TRUE)
+  )
+
+trip_effort <-
+  report_data %>%
+  dplyr::mutate(
+    month_period = lubridate::floor_date(landing_date, unit = "month"),
+    effort = n_fishers * landing_survey_trip_duration
+  ) %>%
+  dplyr::group_by(area, month_period) %>%
+  dplyr::summarise(
+    median_effort = median(effort, na.rm = TRUE)
+  )
+
+
+total_catch_month <-
+  dplyr::left_join(mean_cpue, trip_effort, by = c("area", "month_period")) %>%
+  dplyr::left_join(trips_per_week, by = c("area", "month_period")) %>%
+  dplyr::rename(trips_month = sum) %>%
+  dplyr::select(area:trips_month) %>%
+  dplyr::mutate(tot_catch = (mean_cpue * median_effort * trips_month) / 1000)
+
+p1 <-
+  total_catch_month %>%
+  ggplot(aes(month_period, tot_catch)) +
+  theme_minimal(13) +
+  annotate("rect",
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_line(aes(color = area), size = 0.15) +
+  stat_smooth(aes(fill = area, color = area), method = "loess", alpha = 0.25, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA)
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2019-01-01"), NA)
+  ) +
+  theme(
+    legend.position = "top",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
+  labs(
+    x = "",
+    y = "Catch (tons) per month",
+    color = "",
+    fill = ""
+  )
+
+p2 <-
+  total_catch_month %>%
+  ggplot(aes(month_period, tot_catch)) +
+  theme_minimal(13) +
+  annotate("rect",
+    xmin = as.Date("2020-03-28"), xmax = as.Date("2021-12-31"),
+    ymin = -Inf, ymax = Inf, fill = "grey", alpha = .5
+  ) +
+  geom_point(aes(color = area), size = 0.25) +
+  geom_line(aes(color = area), size = 0.15) +
+  stat_smooth(aes(fill = area, color = area), method = "loess", alpha = 0.25, size = 0.75) +
+  scale_fill_manual(values = area_colors) +
+  scale_color_manual(values = area_colors) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, NA)
+  ) +
+  scale_x_date(
+    date_breaks = "3 month",
+    minor_breaks = NULL,
+    labels = label_date,
+    expand = c(0, 0),
+    limits = c(as.Date("2019-01-01"), NA)
+  ) +
+  facet_grid(area ~ ., scales = "free") +
+  theme(
+    legend.position = "",
+    strip.background = element_blank(),
+    strip.text = element_blank()
+  ) +
+  labs(
+    x = "Date",
+    y = "Catch (tons) per month",
+    color = "",
+    fill = ""
+  )
+
+cowplot::plot_grid(p1, p2,
+  ncol = 1,
+  rel_heights = c(1, 0.9),
+  labels = "auto"
+)
+```
+
 
 ## **Seasonality**
 
