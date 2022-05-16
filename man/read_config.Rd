@@ -4,7 +4,10 @@
 \alias{read_config}
 \title{Read configuration file}
 \usage{
-read_config()
+read_config(conf = "default")
+}
+\arguments{
+\item{conf}{The working environment, choices are `default` or `develop`.}
 }
 \value{
 a list of package configuration attributes

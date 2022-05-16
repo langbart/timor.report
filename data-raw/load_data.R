@@ -2,7 +2,7 @@
 
 library(magrittr)
 
-pars <- read_config()
+pars <- read_config(conf = "develop")
 googleCloudStorageR::gcs_auth(json_file = "auth/gcp-sa-peskas_ingestion-key.json")
 
 

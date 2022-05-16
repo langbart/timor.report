@@ -13,13 +13,6 @@ default:
         project: peskas
         bucket: timor
         service_account_key: !expr readLines("auth/gcp-sa-peskas_ingestion-key.json")
-  public_storage:
-    google:
-      key: gcs
-      options:
-        project: peskas
-        bucket: public-timor
-        service_account_key: !expr readLines("auth/gcp-sa-peskas_ingestion-key.json")
   merged_trips:
     prefix: all_trips
   nutrients:
@@ -32,3 +25,18 @@ default:
       protein: 46
       vitaminA: 0.0007
       omega3: 1.1
+develop:
+  storage:
+    google:
+      key: gcs
+      options:
+        project: peskas
+        bucket: public-timor-dev
+        service_account_key: !expr readLines("auth/gcp-sa-peskas_ingestion-key.json")
+  storage_meta:
+    google:
+      key: gcs
+      options:
+        project: peskas
+        bucket: timor-dev
+        service_account_key: !expr readLines("auth/gcp-sa-peskas_ingestion-key.json")
